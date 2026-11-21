@@ -397,7 +397,10 @@ class Risveglio:
             kwargs = dict(
                 model=modello,
                 max_tokens=8000,
-                system=self.c.prompt_sistema(),
+                # Punto di cache esplicito alla fine della parte fissa (strumenti + istruzioni + costituzione):
+                # così ogni risveglio riusa la cache del precedente invece di riscriverla.
+                system=[{"type": "text", "text": self.c.prompt_sistema(),
+                         "cache_control": {"type": "ephemeral"}}],
                 tools=self.strumenti(modello),
                 messages=messages,
                 output_config={"effort": effort},
