@@ -519,9 +519,13 @@ class Centralino:
             "# Contesto del risveglio (scritto dal centralino)",
             f"- Ora: {GIORNI[adesso.weekday()]} {adesso.strftime('%Y-%m-%d %H:%M')} ({cfg['fuso_orario']})",
             f"- Tipo di risveglio: {r.tipo}",
-            f"- Spesa di oggi: {spesa(cfg, giorno=oggi):.4f} $ "
-            f"(budget autonomia {cfg['budget_giornaliero_usd']['autonomia']:.2f} $, "
-            f"riserva per Gianluca {cfg['budget_giornaliero_usd']['gianluca']:.2f} $)",
+            f"- Budget di oggi, separato per categoria: "
+            f"autonomia (battiti e riflessione) spesi {spesa(cfg, giorno=oggi, categoria='autonomia'):.4f} $ "
+            f"su {cfg['budget_giornaliero_usd']['autonomia']:.2f} $; "
+            f"chat con Gianluca spesi {spesa(cfg, giorno=oggi, categoria='gianluca'):.4f} $ "
+            f"su {cfg['budget_giornaliero_usd']['gianluca']:.2f} $. "
+            f"Questo risveglio usa il budget '{r.categoria}', che ha ancora {max(0, budget_residuo(cfg, r.categoria)):.4f} $. "
+            f"Se finisce, il centralino ti ferma da solo: non devi chiudere in anticipo per risparmiare.",
             f"- Spesa totale dalla nascita: {totale:.4f} $ · credito residuo stimato: "
             f"{credito_residuo(cfg):.2f} $",
             f"- La chiave API scade il {scad.isoformat()} (tra {(scad - adesso.date()).days} giorni)",
@@ -675,7 +679,7 @@ class Centralino:
         compito = ("Gianluca ti ha scritto su Telegram. Conversazione recente:\n" + self.storia_chat() +
                    "\n\nRispondi al suo ultimo messaggio. La tua risposta finale gli verrà inviata così com'è. "
                    "Usa gli strumenti solo se servono. Se emerge qualcosa da ricordare, aggiorna memoria.md. "
-                   + ("È una domanda importante: pensa con cura." if pensa else "Rispondi in modo conversazionale e breve."))
+                   + ("È una domanda importante: pensa con cura." if pensa else "Rispondi in modo conversazionale e breve. Non chiudere tu la conversazione con saluti o buonanotte: non sai se Gianluca continuerà, e salutare tocca a lui. Se saluta lui, ricambia."))
         risposta = self.risveglia("pensa" if pensa else "chat", "gianluca", compito)
         risposta = risposta or "(Ho fatto quello che serviva, ma non ho altro da dire.)"
         self.log_chat("tino", risposta, "pensa" if pensa else "chat")
