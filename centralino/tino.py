@@ -25,7 +25,6 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -168,6 +167,15 @@ def spesa(cfg, giorno: str | None = None, categoria: str | None = None, mese: st
     return tot
 
 
+RICARICHE = VITA / "conti" / "ricariche.jsonl"          # pubblico: crediti caricati da Gianluca
+
+
+def credito_residuo(cfg) -> float:
+    """Crediti caricati (iniziali + ricariche registrate con /ricarica) meno la spesa registrata."""
+    caricato = cfg["credito_iniziale_usd"] + sum(r.get("importo_usd", 0.0) for r in leggi_jsonl(RICARICHE))
+    return caricato - spesa(cfg)
+
+
 def budget_residuo(cfg, categoria: str) -> float:
     oggi = ora(cfg).date().isoformat()
     return cfg["budget_giornaliero_usd"][categoria] - spesa(cfg, giorno=oggi, categoria=categoria)
@@ -187,19 +195,34 @@ class Telegram:
             return json.load(r)
 
     def aggiornamenti(self, offset: int | None, attesa: int = 50) -> list[dict]:
-        params = {"timeout": attesa, "allowed_updates": json.dumps(["message"])}
+        params = {"timeout": attesa, "allowed_updates": json.dumps(["message", "callback_query"])}
         if offset is not None:
             params["offset"] = offset
         return self.chiama("getUpdates", params, timeout=attesa + 15).get("result", [])
 
-    def invia(self, chat_id, testo: str) -> None:
+    def invia(self, chat_id, testo: str, pulsanti: list[tuple[str, str]] | None = None) -> None:
+        """Invia un messaggio; `pulsanti` = [(etichetta, dato_callback), ...] sull'ultimo blocco."""
         testo = testo.strip() or "(messaggio vuoto)"
-        for i in range(0, len(testo), 4000):
+        blocchi = [testo[i:i + 4000] for i in range(0, len(testo), 4000)]
+        for n, blocco in enumerate(blocchi):
+            params = {"chat_id": chat_id, "text": blocco, "disable_web_page_preview": "true"}
+            if pulsanti and n == len(blocchi) - 1:
+                params["reply_markup"] = json.dumps(
+                    {"inline_keyboard": [[{"text": t, "callback_data": d} for t, d in pulsanti]]})
             try:
-                self.chiama("sendMessage", {"chat_id": chat_id, "text": testo[i:i + 4000],
-                                            "disable_web_page_preview": "true"})
+                self.chiama("sendMessage", params)
             except Exception:
                 log.exception("Invio Telegram fallito")
+
+    def chiudi_pulsanti(self, chat_id, message_id, nota: str, testo_originale: str, callback_id: str) -> None:
+        """Toglie i pulsanti da un messaggio e ci aggiunge l'esito."""
+        try:
+            self.chiama("answerCallbackQuery", {"callback_query_id": callback_id})
+            self.chiama("editMessageText", {"chat_id": chat_id, "message_id": message_id,
+                                            "text": (testo_originale + "\n\n" + nota)[:4096],
+                                            "disable_web_page_preview": "true"})
+        except Exception:
+            log.exception("Aggiornamento messaggio Telegram fallito")
 
     def sta_scrivendo(self, chat_id) -> None:
         try:
@@ -271,10 +294,11 @@ STRUMENTI_TINO = [
         "strict": True,
     },
     {
-        "name": "chiedi_pubblicazione",
-        "description": ("Chiede a Gianluca di approvare la pubblicazione dello stato attuale di vita/ sul repository "
-                        "GitHub (esclusa la cartella privato/). Spiega cosa è cambiato. La pubblicazione avviene solo "
-                        "se Gianluca risponde /approvo."),
+        "name": "pubblica_vita",
+        "description": ("Pubblica subito lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
+                        "controllo automatico dei segreti. Gianluca riceve un riepilogo con l'anteprima e può "
+                        "annullare. La descrizione diventa il messaggio del commit: scrivila chiara e breve, "
+                        "dicendo cosa è cambiato."),
         "input_schema": {"type": "object", "properties": {"descrizione": {"type": "string"}},
                          "required": ["descrizione"], "additionalProperties": False},
         "strict": True,
@@ -337,8 +361,8 @@ class Risveglio:
             self.c.tg.invia(self.c.owner, "🤖 " + inp["testo"])
             self.c.log_chat("tino", inp["testo"], self.tipo)
             return "Messaggio inviato."
-        if nome == "chiedi_pubblicazione":
-            return self.c.nuova_richiesta_pubblicazione(inp["descrizione"])
+        if nome == "pubblica_vita":
+            return self.c.pubblica_vita(inp["descrizione"])
         raise ErroreStrumento(f"Strumento sconosciuto: {nome}")
 
     # --- ciclo principale -----------------------------------------------------
@@ -496,7 +520,7 @@ class Centralino:
             f"(budget autonomia {cfg['budget_giornaliero_usd']['autonomia']:.2f} $, "
             f"riserva per Gianluca {cfg['budget_giornaliero_usd']['gianluca']:.2f} $)",
             f"- Spesa totale dalla nascita: {totale:.4f} $ · credito residuo stimato: "
-            f"{cfg['credito_iniziale_usd'] - totale:.2f} $",
+            f"{credito_residuo(cfg):.2f} $",
             f"- La chiave API scade il {scad.isoformat()} (tra {(scad - adesso.date()).days} giorni)",
             f"- Ricavi finora: 0 $",
             "",
@@ -521,14 +545,52 @@ class Centralino:
                          f"{'Gianluca' if x['chi'] == 'gianluca' else 'Tino'}: {x['testo']}" for x in righe)
 
     # --- pubblicazione --------------------------------------------------------
-    def nuova_richiesta_pubblicazione(self, descrizione: str) -> str:
-        rid = uuid.uuid4().hex[:6]
-        self.stato["richieste"][rid] = {"tipo": "pubblicazione", "descrizione": descrizione,
-                                        "quando": ora(self.cfg).isoformat(timespec="seconds")}
-        self.salva()
-        self.tg.invia(self.owner, f"📦 Tino chiede di pubblicare (id {rid}):\n{descrizione}\n\n"
-                                  f"Rispondi /approvo {rid} oppure /rifiuto {rid}")
-        return f"Richiesta {rid} inviata a Gianluca. Verrà pubblicata solo se approva."
+    def git(self, *args) -> subprocess.CompletedProcess:
+        env = dict(os.environ, GIT_AUTHOR_NAME=self.cfg["git_autore"], GIT_AUTHOR_EMAIL=self.cfg["git_email"],
+                   GIT_COMMITTER_NAME=self.cfg["git_autore"], GIT_COMMITTER_EMAIL=self.cfg["git_email"])
+        return subprocess.run(["git", *args], cwd=BASE, capture_output=True, text=True, env=env, timeout=120)
+
+    def anteprima(self) -> str:
+        """Riassunto leggibile di ciò che sta per essere pubblicato (dalle modifiche già in stage)."""
+        stat = self.git("diff", "--cached", "--stat").stdout.strip()
+        nuove = [r[1:] for r in self.git("diff", "--cached", "-U0", "--", "vita/diario.md").stdout.splitlines()
+                 if r.startswith("+") and not r.startswith("+++")]
+        testo = "\n".join(nuove).strip()
+        if len(testo) > 1200:
+            testo = testo[:1200].rstrip() + "…"
+        parti = ["File cambiati:\n" + (stat or "(nessuno)")]
+        if testo:
+            parti.append("Nuovo nel diario:\n" + testo)
+        return "\n\n".join(parti)
+
+    def pubblica_vita(self, descrizione: str) -> str:
+        """Pubblicazione automatica di vita/: Gianluca riceve il riepilogo e può annullare."""
+        self.git("add", "-A", "--", "vita")
+        if not self.git("diff", "--cached", "--quiet").returncode:
+            return "Niente di nuovo da pubblicare."
+        riepilogo = self.anteprima()
+        esito, sha = self.pubblica(f"Tino: {descrizione[:200]}")
+        if sha:
+            self.tg.invia(self.owner, f"📦 Tino ha pubblicato: {descrizione}\n\n{riepilogo}",
+                          pulsanti=[("↩️ Annulla", f"annulla:{sha}")])
+            return "Pubblicato. Gianluca ha ricevuto il riepilogo."
+        self.tg.invia(self.owner, f"📦 Pubblicazione di Tino non riuscita: {esito}")
+        return f"Pubblicazione non riuscita: {esito}"
+
+    def annulla_pubblicazione(self, sha: str) -> str:
+        if not re.fullmatch(r"[0-9a-f]{7,40}", sha):
+            return "Commit non valido."
+        r = self.git("revert", "--no-edit", sha)
+        if r.returncode:
+            self.git("revert", "--abort")
+            return "Annullamento non riuscito: " + r.stderr[-300:]
+        p = self.git("push", "-q", "origin", "HEAD:main")
+        if p.returncode:
+            return "Annullato in locale, ma push fallito: " + p.stderr[-300:]
+        aggiungi_jsonl(VITA / "privato" / "decisioni_gianluca.jsonl",
+                       {"quando": ora(self.cfg).isoformat(timespec="seconds"), "esito": "pubblicazione annullata",
+                        "commit": sha})
+        return "↩️ Pubblicazione annullata (i file sono tornati com'erano prima)."
 
     def controlla_segreti(self) -> list[str]:
         diff = subprocess.run(["git", "diff", "--cached"], cwd=BASE, capture_output=True, text=True).stdout
@@ -543,25 +605,24 @@ class Centralino:
                 problemi.append(nome)
         return problemi
 
-    def pubblica(self, messaggio: str) -> str:
-        env = dict(os.environ, GIT_AUTHOR_NAME=self.cfg["git_autore"], GIT_AUTHOR_EMAIL=self.cfg["git_email"],
-                   GIT_COMMITTER_NAME=self.cfg["git_autore"], GIT_COMMITTER_EMAIL=self.cfg["git_email"])
-        def git(*args):
-            return subprocess.run(["git", *args], cwd=BASE, capture_output=True, text=True, env=env, timeout=120)
-        git("add", "-A")
+    def pubblica(self, messaggio: str) -> tuple[str, str | None]:
+        """Committa e pubblica ciò che è in stage (solo vita/). Ritorna (esito, sha o None)."""
+        git = self.git
+        git("add", "-A", "--", "vita")
         if not git("diff", "--cached", "--quiet").returncode:
-            return "Niente di nuovo da pubblicare."
+            return "Niente di nuovo da pubblicare.", None
         problemi = self.controlla_segreti()
         if problemi:
             git("reset", "-q")
-            return "⛔ Pubblicazione bloccata: possibili segreti nei file (" + ", ".join(problemi) + ")."
+            return "⛔ Pubblicazione bloccata: possibili segreti nei file (" + ", ".join(problemi) + ").", None
         c = git("commit", "-q", "-m", messaggio)
         if c.returncode:
-            return "Commit fallito: " + c.stderr[-300:]
+            return "Commit fallito: " + c.stderr[-300:], None
+        sha = git("rev-parse", "--short", "HEAD").stdout.strip()
         p = git("push", "-q", "origin", "HEAD:main")
         if p.returncode:
-            return "Commit fatto, ma push fallito: " + p.stderr[-300:]
-        return "✅ Pubblicato."
+            return "Commit fatto, ma push fallito: " + p.stderr[-300:], None
+        return "✅ Pubblicato.", sha
 
     # --- risvegli -------------------------------------------------------------
     def risveglia(self, tipo: str, categoria: str, compito: str) -> str:
@@ -601,7 +662,7 @@ class Centralino:
                    "imparato, quanto hai speso.\n"
                    "2. Aggiorna memoria.md: compatta, togli il superfluo.\n"
                    "3. Se serve, aggiorna desideri.md e proposte.md.\n"
-                   "4. Se il diario ha voci nuove, usa chiedi_pubblicazione con una descrizione breve.\n"
+                   "4. Pubblica con pubblica_vita, con una descrizione breve di cosa è cambiato oggi.\n"
                    "5. Manda a Gianluca un breve messaggio della sera con scrivi_a_gianluca.")
         self.risveglia("riflessione", "autonomia", compito)
 
@@ -627,7 +688,7 @@ class Centralino:
         oggi = adesso.date().isoformat()
         if cmd in ("/start", "/aiuto", "/help"):
             self.tg.invia(self.owner, "Comandi:\n/stato · /conti · /sveglia · /pensa <domanda>\n"
-                                      "/approvo <id> · /rifiuto <id> · /pubblica\n/spegni · /accendi\n"
+                                      "/ricarica <importo in $> · /pubblica\n/spegni · /accendi\n"
                                       "Qualsiasi altro messaggio: parli con Tino.")
         elif cmd == "/stato":
             prossimo = self.prossimo_evento(adesso)
@@ -636,9 +697,8 @@ class Centralino:
                           f"Spesa oggi: {spesa(cfg, giorno=oggi):.4f} $ "
                           f"(autonomia {spesa(cfg, giorno=oggi, categoria='autonomia'):.4f}, "
                           f"chat {spesa(cfg, giorno=oggi, categoria='gianluca'):.4f})\n"
-                          f"Credito stimato: {cfg['credito_iniziale_usd'] - spesa(cfg):.2f} $\n"
+                          f"Budget restante: {credito_residuo(cfg):.2f} $\n"
                           f"Prossimo evento: {prossimo}\n"
-                          f"Richieste in attesa: {len(self.stato['richieste'])}\n"
                           f"Messaggi di estranei ignorati: {self.stato['ignorati']}")
         elif cmd == "/conti":
             mese = adesso.strftime("%Y-%m")
@@ -649,7 +709,10 @@ class Centralino:
                     per_tipo[x["tipo"]] = per_tipo.get(x["tipo"], 0) + x["costo_usd"]
             dettaglio = "\n".join(f"  {k}: {v:.4f} $" for k, v in sorted(per_tipo.items())) or "  (nessuna spesa)"
             self.tg.invia(self.owner, f"Conti di {mese}:\n{dettaglio}\nTotale mese: {spesa(cfg, mese=mese):.4f} $\n"
-                                      f"Totale dalla nascita: {spesa(cfg):.4f} $\nRicavi: 0 $")
+                                      f"Totale dalla nascita: {spesa(cfg):.4f} $\nRicavi: 0 $\n"
+                                      f"Budget restante: {credito_residuo(cfg):.2f} $ "
+                                      f"(oggi: autonomia {max(0, budget_residuo(cfg, 'autonomia')):.2f} $, "
+                                      f"chat {max(0, budget_residuo(cfg, 'gianluca')):.2f} $)")
         elif cmd == "/sveglia":
             self.tg.invia(self.owner, "⏰ Sveglio Tino per un battito…")
             self.battito()
@@ -660,21 +723,23 @@ class Centralino:
                 self.tg.invia(self.owner, "Uso: /pensa <domanda>")
             else:
                 self.conversa(arg, pensa=True)
-        elif cmd in ("/approvo", "/rifiuto"):
-            req = self.stato["richieste"].pop(arg, None)
-            self.salva()
-            if not req:
-                self.tg.invia(self.owner, f"Nessuna richiesta con id '{arg}'.")
-            elif cmd == "/rifiuto":
-                self.tg.invia(self.owner, f"Richiesta {arg} rifiutata.")
-                aggiungi_jsonl(VITA / "privato" / "decisioni_gianluca.jsonl",
-                               {"quando": adesso.isoformat(timespec="seconds"), "id": arg, "esito": "rifiutata",
-                                "descrizione": req["descrizione"]})
+        elif cmd == "/ricarica":
+            try:
+                importo = float(arg.replace(",", ".").replace("$", "").strip())
+                assert 0 < importo < 1000
+            except (ValueError, AssertionError):
+                self.tg.invia(self.owner, "Uso: /ricarica <importo in dollari>, es. /ricarica 20")
             else:
-                esito = self.pubblica(f"Tino: {req['descrizione'][:200]}\n\nApprovato da Gianluca via Telegram (id {arg}).")
-                self.tg.invia(self.owner, esito)
+                aggiungi_jsonl(RICARICHE, {"quando": adesso.isoformat(timespec="seconds"), "importo_usd": importo})
+                self.stato["avvisi"].pop("credito", None)
+                self.salva()
+                self.tg.invia(self.owner, f"💰 Ricarica di {importo:.2f} $ registrata. "
+                                          f"Budget restante: {credito_residuo(cfg):.2f} $")
         elif cmd == "/pubblica":
-            self.tg.invia(self.owner, self.pubblica("Pubblicazione richiesta da Gianluca via Telegram."))
+            self.git("add", "-A", "--", "vita")
+            riepilogo = self.anteprima()
+            esito, sha = self.pubblica("Pubblicazione richiesta da Gianluca via Telegram.")
+            self.tg.invia(self.owner, esito + ("\n\n" + riepilogo if sha else ""))
         elif cmd == "/spegni":
             STOP.write_text(adesso.isoformat())
             self.tg.invia(self.owner, "💤 Tino è spento. Nessun risveglio finché non scrivi /accendi.")
@@ -723,7 +788,7 @@ class Centralino:
             self.salva()
             self.tg.invia(self.owner, f"🔑 La chiave API di Tino scade il {scad.isoformat()} (tra {giorni} giorni). "
                                       "Ricordati di rinnovarla e di aggiornare chiave_api_scadenza in config.json.")
-        residuo = cfg["credito_iniziale_usd"] - spesa(cfg)
+        residuo = credito_residuo(cfg)
         if residuo < cfg["avviso_credito_sotto_usd"] and not self.stato["avvisi"].get("credito"):
             self.stato["avvisi"]["credito"] = oggi
             self.salva()
@@ -732,6 +797,18 @@ class Centralino:
 
     # --- ciclo principale -----------------------------------------------------
     def gestisci(self, upd: dict):
+        cb = upd.get("callback_query")
+        if cb:
+            if cb.get("from", {}).get("id") != self.owner:
+                return
+            dato = cb.get("data", "")
+            m = cb.get("message", {})
+            if dato.startswith("annulla:"):
+                nota = self.annulla_pubblicazione(dato.split(":", 1)[1])
+            else:
+                nota = "(pulsante non riconosciuto)"
+            self.tg.chiudi_pulsanti(self.owner, m.get("message_id"), nota, m.get("text", ""), cb["id"])
+            return
         msg = upd.get("message") or {}
         chat = msg.get("chat", {})
         testo = (msg.get("text") or "").strip()
