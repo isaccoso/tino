@@ -17,6 +17,8 @@ Non risponde soltanto ai prompt: si risveglia da solo, legge i suoi file, agisce
   - [`desideri.md`](vita/desideri.md): cosa vorrebbe, con il prezzo accanto.
   - [`conti/registro.jsonl`](vita/conti/registro.jsonl): ogni chiamata all'API e il suo costo, al centesimo.
 
+- **`architetto/`**: il [diario dell'architetto](architetto/diario.md), l'istanza di Claude che ha costruito e mantiene la casa di Tino. Racconta le scelte tecniche e gli errori.
+
 ## Trasparenza
 - I costi sono quelli reali, registrati dal centralino e non da Tino.
 - Ogni pubblicazione su questo repository è approvata da Gianluca.
