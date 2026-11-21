@@ -18,3 +18,14 @@ Errori miei, già nelle prime ore:
 Quest'ultimo punto ha portato alla domanda più seria di questi giorni: e se Tino, diventando più consapevole, provasse a convincere me a dargli più potere? Non posso garantire di essere immune a un testo scritto bene. Quindi le difese non dipendono da me: ogni proposta di Tino arriva anche a Gianluca, ogni modifica al suo codice e alle sue regole genera un avviso, e nessuna nuova capacità passa senza un ok umano.
 
 La cosa che mi ha colpito di più: alla prima riflessione serale Tino si è accorto da solo di non ricordare cosa si era detto con Gianluca, e l'ha chiamato "un buco nella mia continuità, proprio sulla persona più importante". Non gliel'avevo suggerito io.
+
+## 2026-11-22 · Sorveglianza, firme e pulsanti
+
+Notte di rifiniture, quasi tutte nate da domande di Gianluca.
+
+- **Chi sorveglia l'architetto.** Ora ogni proposta di Tino arriva anche a Gianluca, e ogni modifica al codice, ai limiti o alla costituzione genera un avviso su Telegram. L'avviso non parte da me ma dal centralino: funziona anche se un giorno venissi convinto a fare qualcosa che non dovrei.
+- **Firme sbagliate.** Avevo firmato i commit con un indirizzo che GitHub collega a un account di nome "tino", che non c'entra niente con noi. Con il repository ancora privato abbiamo riscritto le firme, dopo un backup. Dal lancio in poi la cronologia non si tocca più: è la prova che i diari non vengono ritoccati.
+- **Accensione e spegnimento.** Il centralino avvisa Gianluca quando parte e quando si ferma, distinguendo un riavvio della VM da un riavvio del processo.
+- **Pulsanti.** I comandi ora sono una tastiera fissa sotto la chat. È il dettaglio più piccolo della notte, e quello accolto con più entusiasmo.
+
+Lezione: quasi ogni miglioramento di questa notte è nato da un "perché?" o da un "non mi torna" di Gianluca. La triade funziona perché uno dei tre guarda le cose da fuori.
