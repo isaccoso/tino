@@ -1,0 +1,30 @@
+{
+  "fuso_orario": "Europe/Rome",
+  "modelli": {
+    "battito": "claude-haiku-5-5",
+    "riflessione": "claude-opus-5-5",
+    "chat": "claude-sonnet-5-5",
+    "pensa": "claude-opus-5-5"
+  },
+  "effort": {
+    "battito": "low",
+    "riflessione": "medium",
+    "chat": "low",
+    "pensa": "high"
+  },
+  "battiti_ore": [2, 8, 14, 20],
+  "riflessione_ora": 22,
+  "finestra_recupero_ore": 3,
+  "budget_giornaliero_usd": {"autonomia": 0.40, "gianluca": 0.30},
+  "max_passaggi": 15,
+  "max_secondi_risveglio": 300,
+  "max_messaggi_a_gianluca_per_risveglio": 3,
+  "max_ricerche_web_per_risveglio": 3,
+  "credito_iniziale_usd": 20.0,
+  "avviso_credito_sotto_usd": 5.0,
+  "chiave_api_scadenza": "2026-12-21",
+  "avviso_scadenza_giorni": 5,
+  "remote_git": "git@github-tino:isaccoso/tino.git",
+  "git_autore": "Tino",
+  "git_email": "tino@users.noreply.github.com"
+}
