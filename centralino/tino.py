@@ -20,6 +20,7 @@ import os
 import re
 import subprocess
 import sys
+import signal
 import time
 import traceback
 import urllib.error
@@ -867,12 +868,41 @@ class Centralino:
         self.stato["impronte"] = impronte
         self.salva()
 
+    def annuncia_avvio(self):
+        """Avvisa Gianluca che il processo è (ri)partito, distinguendo un riavvio della VM."""
+        try:
+            uptime = float(Path("/proc/uptime").read_text().split()[0])
+        except Exception:
+            uptime = None
+        adesso = ora(self.cfg)
+        if uptime is not None and uptime < 600:
+            causa = f"dopo l'avvio della VM ({int(uptime // 60)} min fa)"
+        else:
+            causa = "riavvio del processo (la VM era già accesa)"
+        stato = "💤 spento (scrivi /accendi)" if STOP.exists() else "🟢 acceso"
+        self.tg.invia(self.owner, f"🔌 Centralino di Tino avviato alle {adesso.strftime('%H:%M')}: {causa}.\n"
+                                  f"Stato: {stato}\nProssimo evento: {self.prossimo_evento(adesso)}\n"
+                                  f"Budget restante: {credito_residuo(self.cfg):.2f} $")
+
+    def annuncia_arresto(self, signum, frame):
+        """Su SIGTERM (spegnimento della VM o stop del servizio) avvisa Gianluca ed esce."""
+        try:
+            self.tg.chiama("sendMessage", {"chat_id": self.owner, "text":
+                           f"🔻 Centralino di Tino in arresto alle {ora(self.cfg).strftime('%H:%M')} "
+                           "(spegnimento della VM o stop del servizio)."}, timeout=5)
+        except Exception:
+            pass
+        log.info("Centralino arrestato (segnale %s).", signum)
+        sys.exit(0)
+
     def avvia(self):
         log.info("Centralino avviato.")
-        try:
-            self.controlla_corpo()
-        except Exception:
-            log.exception("Controllo del corpo fallito")
+        signal.signal(signal.SIGTERM, self.annuncia_arresto)
+        for passo in (self.annuncia_avvio, self.controlla_corpo):
+            try:
+                passo()
+            except Exception:
+                log.exception("Errore all'avvio in %s", passo.__name__)
         while True:
             try:
                 self.controlla_orologio()
