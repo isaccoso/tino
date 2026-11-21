@@ -229,6 +229,22 @@ class Telegram:
         except Exception:
             log.exception("Aggiornamento messaggio Telegram fallito")
 
+    def invia_file(self, chat_id, percorso: Path, didascalia: str = "") -> None:
+        """Invia un file come documento (multipart/form-data, solo libreria standard)."""
+        confine = "----tino" + os.urandom(8).hex()
+        parti = []
+        for nome, valore in (("chat_id", str(chat_id)), ("caption", didascalia[:1000])):
+            parti.append(f'--{confine}\r\nContent-Disposition: form-data; name="{nome}"\r\n\r\n{valore}\r\n'.encode())
+        parti.append(f'--{confine}\r\nContent-Disposition: form-data; name="document"; filename="{percorso.name}"\r\n'
+                     f'Content-Type: application/octet-stream\r\n\r\n'.encode() + percorso.read_bytes() + b"\r\n")
+        parti.append(f"--{confine}--\r\n".encode())
+        req = urllib.request.Request(self.base + "sendDocument", data=b"".join(parti),
+                                     headers={"Content-Type": f"multipart/form-data; boundary={confine}"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            esito = json.load(r)
+        if not esito.get("ok"):
+            raise RuntimeError(esito.get("description", "invio non riuscito"))
+
     def sta_scrivendo(self, chat_id) -> None:
         try:
             self.chiama("sendChatAction", {"chat_id": chat_id, "action": "typing"}, timeout=10)
@@ -323,6 +339,15 @@ STRUMENTI_TINO = [
         "strict": True,
     },
     {
+        "name": "invia_file_a_gianluca",
+        "description": ("Manda a Gianluca su Telegram un file che sta dentro vita/ (es. un'immagine SVG che hai "
+                        "disegnato), con una breve didascalia. Massimo 10 MB. Conta come un messaggio a Gianluca."),
+        "input_schema": {"type": "object", "properties": {"percorso": {"type": "string"},
+                                                          "didascalia": {"type": "string"}},
+                         "required": ["percorso", "didascalia"], "additionalProperties": False},
+        "strict": True,
+    },
+    {
         "name": "pubblica_vita",
         "description": ("Pubblica subito lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
                         "controllo automatico dei segreti. Gianluca riceve un riepilogo con l'anteprima e può "
@@ -390,6 +415,18 @@ class Risveglio:
             self.c.tg.invia(self.c.owner, "🤖 " + inp["testo"])
             self.c.log_chat("tino", inp["testo"], self.tipo)
             return "Messaggio inviato."
+        if nome == "invia_file_a_gianluca":
+            if self.messaggi_inviati >= self.cfg["max_messaggi_a_gianluca_per_risveglio"]:
+                raise ErroreStrumento("Hai raggiunto il massimo di messaggi a Gianluca per questo risveglio.")
+            f = percorso_sicuro(inp["percorso"], scrittura=False)
+            if not f.is_file():
+                raise ErroreStrumento("File inesistente.")
+            if f.stat().st_size > 10 * 1024 * 1024:
+                raise ErroreStrumento("File troppo grande (massimo 10 MB).")
+            self.messaggi_inviati += 1
+            self.c.tg.invia_file(self.c.owner, f, "🤖 " + inp["didascalia"])
+            self.c.log_chat("tino", f"[file inviato: {f.relative_to(VITA.resolve())}] {inp['didascalia']}", self.tipo)
+            return "File inviato."
         if nome == "pubblica_vita":
             return self.c.pubblica_vita(inp["descrizione"])
         raise ErroreStrumento(f"Strumento sconosciuto: {nome}")
