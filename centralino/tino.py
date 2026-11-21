@@ -348,6 +348,16 @@ STRUMENTI_TINO = [
         "strict": True,
     },
     {
+        "name": "converti_in_png",
+        "description": ("Converte un'immagine SVG che sta in vita/ in PNG, salvandola accanto all'originale con lo "
+                        "stesso nome (es. aspetto/tino.svg -> aspetto/tino.png). larghezza in pixel tra 64 e 2048; "
+                        "l'altezza segue le proporzioni. La conversione avviene nella VM e non costa nulla."),
+        "input_schema": {"type": "object", "properties": {"percorso": {"type": "string"},
+                                                          "larghezza": {"type": "integer"}},
+                         "required": ["percorso", "larghezza"], "additionalProperties": False},
+        "strict": True,
+    },
+    {
         "name": "pubblica_vita",
         "description": ("Pubblica subito lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
                         "controllo automatico dei segreti. Gianluca riceve un riepilogo con l'anteprima e può "
@@ -427,6 +437,21 @@ class Risveglio:
             self.c.tg.invia_file(self.c.owner, f, "🤖 " + inp["didascalia"])
             self.c.log_chat("tino", f"[file inviato: {f.relative_to(VITA.resolve())}] {inp['didascalia']}", self.tipo)
             return "File inviato."
+        if nome == "converti_in_png":
+            sorgente = percorso_sicuro(inp["percorso"], scrittura=False)
+            if sorgente.suffix.lower() != ".svg" or not sorgente.is_file():
+                raise ErroreStrumento("Serve un file .svg esistente dentro vita/.")
+            if sorgente.stat().st_size > 1024 * 1024:
+                raise ErroreStrumento("SVG troppo grande (massimo 1 MB).")
+            larghezza = int(inp["larghezza"])
+            if not 64 <= larghezza <= 2048:
+                raise ErroreStrumento("La larghezza deve essere tra 64 e 2048 pixel.")
+            dest = percorso_sicuro(str(sorgente.with_suffix(".png").relative_to(VITA.resolve())), scrittura=True)
+            r = subprocess.run(["rsvg-convert", "-w", str(larghezza), "-a", str(sorgente), "-o", str(dest)],
+                               capture_output=True, text=True, timeout=30, cwd=sorgente.parent)
+            if r.returncode or not dest.is_file():
+                raise ErroreStrumento("Conversione non riuscita: " + (r.stderr.strip()[-300:] or "errore sconosciuto"))
+            return f"Creato {dest.relative_to(VITA.resolve())} ({dest.stat().st_size} byte)."
         if nome == "pubblica_vita":
             return self.c.pubblica_vita(inp["descrizione"])
         raise ErroreStrumento(f"Strumento sconosciuto: {nome}")
