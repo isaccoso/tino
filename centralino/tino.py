@@ -638,6 +638,19 @@ class Centralino:
         if budget_residuo(self.cfg, categoria) <= 0:
             return "(Budget di oggi esaurito: Tino dorme fino a mezzanotte.)"
         r = Risveglio(self, tipo, categoria, compito)
+        proposte = VITA / "proposte.md"
+        prima = proposte.read_text() if proposte.exists() else ""
+        try:
+            return self._esegui(r)
+        finally:
+            # Le proposte all'architetto arrivano sempre anche a Gianluca: non sono un canale nascosto.
+            dopo = proposte.read_text() if proposte.exists() else ""
+            if dopo != prima:
+                nuovo = dopo[len(prima):] if dopo.startswith(prima) else dopo
+                self.tg.invia(self.owner, "📝 Tino ha scritto nelle proposte per l'architetto "
+                                          "(le vedi tu prima di lui):\n\n" + nuovo.strip()[:3000])
+
+    def _esegui(self, r: Risveglio) -> str:
         try:
             return r.esegui_ciclo()
         except anthropic.AuthenticationError:
@@ -832,8 +845,34 @@ class Centralino:
         else:
             self.conversa(testo)
 
+    # --- sorveglianza del "corpo" ---------------------------------------------
+    CORPO = ["centralino/tino.py", "centralino/config.json", "vita/costituzione.md"]
+
+    def controlla_corpo(self):
+        """Avvisa Gianluca se codice, limiti o costituzione sono cambiati dall'ultimo avvio.
+        Tino non può modificare questi file: se cambiano, è stato l'architetto (o Gianluca),
+        e Gianluca deve saperlo sempre, indipendentemente da cosa dice l'architetto."""
+        import hashlib
+        impronte = {f: hashlib.sha256((BASE / f).read_bytes()).hexdigest() for f in self.CORPO}
+        prima = self.stato.get("impronte")
+        if prima and prima != impronte:
+            cambiati = [f for f in self.CORPO if prima.get(f) != impronte[f]]
+            ultimo = self.git("log", "-1", "--format=%h %s (%ar)").stdout.strip()
+            sporchi = self.git("status", "--porcelain", "--", *cambiati).stdout.strip()
+            avviso = ("🔧 Il corpo di Tino è cambiato dall'ultimo avvio.\nFile: " + ", ".join(cambiati) +
+                      f"\nUltimo commit: {ultimo}")
+            if sporchi:
+                avviso += "\n⚠️ Ci sono modifiche NON registrate in git su questi file: chiedi spiegazioni all'architetto."
+            self.tg.invia(self.owner, avviso)
+        self.stato["impronte"] = impronte
+        self.salva()
+
     def avvia(self):
         log.info("Centralino avviato.")
+        try:
+            self.controlla_corpo()
+        except Exception:
+            log.exception("Controllo del corpo fallito")
         while True:
             try:
                 self.controlla_orologio()
