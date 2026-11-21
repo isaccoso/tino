@@ -201,8 +201,10 @@ class Telegram:
             params["offset"] = offset
         return self.chiama("getUpdates", params, timeout=attesa + 15).get("result", [])
 
-    def invia(self, chat_id, testo: str, pulsanti: list[tuple[str, str]] | None = None) -> None:
-        """Invia un messaggio; `pulsanti` = [(etichetta, dato_callback), ...] sull'ultimo blocco."""
+    def invia(self, chat_id, testo: str, pulsanti: list[tuple[str, str]] | None = None,
+              markup: dict | None = None) -> None:
+        """Invia un messaggio; `pulsanti` = [(etichetta, dato_callback), ...] sull'ultimo blocco;
+        `markup` = reply_markup arbitrario (es. la tastiera fissa)."""
         testo = testo.strip() or "(messaggio vuoto)"
         blocchi = [testo[i:i + 4000] for i in range(0, len(testo), 4000)]
         for n, blocco in enumerate(blocchi):
@@ -210,6 +212,8 @@ class Telegram:
             if pulsanti and n == len(blocchi) - 1:
                 params["reply_markup"] = json.dumps(
                     {"inline_keyboard": [[{"text": t, "callback_data": d} for t, d in pulsanti]]})
+            elif markup and n == len(blocchi) - 1:
+                params["reply_markup"] = json.dumps(markup)
             try:
                 self.chiama("sendMessage", params)
             except Exception:
@@ -230,6 +234,30 @@ class Telegram:
             self.chiama("sendChatAction", {"chat_id": chat_id, "action": "typing"}, timeout=10)
         except Exception:
             pass
+
+
+# Tastiera fissa sotto la chat: etichetta del pulsante -> comando
+TASTI = {
+    "📊 Stato": "/stato", "💰 Conti": "/conti",
+    "⏰ Sveglia": "/sveglia", "🧠 Pensa": "/pensa",
+    "📦 Pubblica": "/pubblica", "💤 Spegni": "/spegni", "🟢 Accendi": "/accendi",
+}
+TASTIERA = {"keyboard": [[{"text": "📊 Stato"}, {"text": "💰 Conti"}, {"text": "⏰ Sveglia"}],
+                         [{"text": "🧠 Pensa"}, {"text": "📦 Pubblica"}],
+                         [{"text": "💤 Spegni"}, {"text": "🟢 Accendi"}]],
+            "is_persistent": True, "resize_keyboard": True,
+            "input_field_placeholder": "Scrivi a Tino…"}
+MENU_COMANDI = [
+    ("stato", "Stato di Tino, spesa di oggi, prossimo evento"),
+    ("conti", "Conti del mese e budget restante"),
+    ("sveglia", "Sveglia Tino per un battito (costa poco)"),
+    ("pensa", "Domanda importante: risponde con Opus"),
+    ("ricarica", "Registra una ricarica, es. /ricarica 20"),
+    ("pubblica", "Pubblica ora vita/ sul repository"),
+    ("spegni", "Spegne Tino (niente risvegli)"),
+    ("accendi", "Riaccende Tino"),
+    ("aiuto", "Elenco dei comandi"),
+]
 
 
 # --------------------------------------------------------------------------
@@ -495,6 +523,7 @@ class Centralino:
         self.stato.setdefault("richieste", {})
         self.stato.setdefault("ignorati", 0)
         self.stato.setdefault("avvisi", {})
+        self.attesa_pensa = False   # dopo il pulsante "Pensa", il messaggio successivo va a Opus
 
     def salva(self):
         self.stato["slot_fatti"] = self.stato["slot_fatti"][-50:]
@@ -710,7 +739,7 @@ class Centralino:
         if cmd in ("/start", "/aiuto", "/help"):
             self.tg.invia(self.owner, "Comandi:\n/stato · /conti · /sveglia · /pensa <domanda>\n"
                                       "/ricarica <importo in $> · /pubblica\n/spegni · /accendi\n"
-                                      "Qualsiasi altro messaggio: parli con Tino.")
+                                      "Qualsiasi altro messaggio: parli con Tino.", markup=TASTIERA)
         elif cmd == "/stato":
             prossimo = self.prossimo_evento(adesso)
             self.tg.invia(self.owner,
@@ -826,6 +855,11 @@ class Centralino:
             m = cb.get("message", {})
             if dato.startswith("annulla:"):
                 nota = self.annulla_pubblicazione(dato.split(":", 1)[1])
+            elif dato == "spegni:si":
+                STOP.write_text(ora(self.cfg).isoformat())
+                nota = "💤 Tino è spento. Premi 🟢 Accendi per riaccenderlo."
+            elif dato == "spegni:no":
+                nota = "Ok, Tino resta acceso."
             else:
                 nota = "(pulsante non riconosciuto)"
             self.tg.chiudi_pulsanti(self.owner, m.get("message_id"), nota, m.get("text", ""), cb["id"])
@@ -838,6 +872,27 @@ class Centralino:
             return
         if not testo:
             self.tg.invia(self.owner, "Per ora capisco solo messaggi di testo.")
+            return
+        if testo in TASTI:
+            testo = TASTI[testo]
+        if testo == "/pensa" and not self.attesa_pensa:
+            self.attesa_pensa = True
+            self.tg.invia(self.owner, "🧠 Scrivi la domanda: la passo a Tino con Opus. (Scrivi /annulla per lasciar perdere.)")
+            return
+        if self.attesa_pensa:
+            self.attesa_pensa = False
+            if testo in ("/annulla", "annulla"):
+                self.tg.invia(self.owner, "Va bene, niente /pensa.")
+                return
+            if not testo.startswith("/"):
+                if STOP.exists():
+                    self.tg.invia(self.owner, "💤 Tino è spento. Scrivi /accendi per svegliarlo.")
+                else:
+                    self.conversa(testo, pensa=True)
+                return
+        if testo == "/spegni":
+            self.tg.invia(self.owner, "Vuoi davvero spegnere Tino? Niente risvegli finché non lo riaccendi.",
+                          pulsanti=[("💤 Sì, spegni", "spegni:si"), ("Annulla", "spegni:no")])
             return
         if testo.startswith("/"):
             self.comando(testo)
@@ -880,7 +935,12 @@ class Centralino:
         else:
             causa = "riavvio del processo (la VM era già accesa)"
         stato = "💤 spento (scrivi /accendi)" if STOP.exists() else "🟢 acceso"
-        self.tg.invia(self.owner, f"🔌 Centralino di Tino avviato alle {adesso.strftime('%H:%M')}: {causa}.\n"
+        try:
+            self.tg.chiama("setMyCommands", {"commands": json.dumps(
+                [{"command": c, "description": d} for c, d in MENU_COMANDI])})
+        except Exception:
+            log.exception("Impostazione del menu comandi fallita")
+        self.tg.invia(self.owner, markup=TASTIERA, testo=f"🔌 Centralino di Tino avviato alle {adesso.strftime('%H:%M')}: {causa}.\n"
                                   f"Stato: {stato}\nProssimo evento: {self.prossimo_evento(adesso)}\n"
                                   f"Budget restante: {credito_residuo(self.cfg):.2f} $")
 
