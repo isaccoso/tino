@@ -283,6 +283,29 @@ class ErroreStrumento(Exception):
     pass
 
 
+TITOLO_DIARIO = re.compile(r"## (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) · [a-zà-ù][a-zà-ù-]*")
+
+
+def controlla_voce_diario(testo):
+    """Il sito legge il diario voce per voce: ogni voce deve iniziare con un titolo nel formato concordato."""
+    spiegazione = ('Ogni voce del diario deve iniziare con una riga "## AAAA-MM-GG HH:MM · tipo" '
+                   '(es. "## 2026-11-22 14:00 · battito"), con data e ora di adesso e il tipo di risveglio. '
+                   'Il sito di Gianluca usa questo formato per impaginare il diario.')
+    righe = testo.strip().splitlines()
+    if not righe or not righe[0].startswith("## "):
+        raise ErroreStrumento("La voce non inizia con un titolo. " + spiegazione)
+    for riga in righe:
+        if not riga.startswith("## "):
+            continue
+        m = TITOLO_DIARIO.fullmatch(riga.strip())
+        if not m:
+            raise ErroreStrumento(f"Titolo non valido: {riga.strip()!r}. " + spiegazione)
+        try:
+            dt.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M")
+        except ValueError:
+            raise ErroreStrumento(f"Data non valida nel titolo: {riga.strip()!r}. " + spiegazione)
+
+
 def percorso_sicuro(rel: str, scrittura: bool) -> Path:
     rel = (rel or ".").strip().lstrip("/")
     p = (VITA / rel).resolve()
@@ -414,6 +437,8 @@ class Risveglio:
             dati = inp["testo"]
             if len(dati.encode()) > MAX_BYTE_SCRITTURA:
                 raise ErroreStrumento(f"Testo troppo lungo (massimo {MAX_BYTE_SCRITTURA} byte).")
+            if p.name in SOLO_AGGIUNTA and p.parent.resolve() == VITA.resolve():
+                controlla_voce_diario(dati)
             p.parent.mkdir(parents=True, exist_ok=True)
             with p.open("a") as f:
                 f.write(("\n" if p.exists() and p.stat().st_size else "") + dati.rstrip() + "\n")
