@@ -494,7 +494,12 @@ class Risveglio:
         cfg = self.cfg
         modello = cfg["modelli"][self.tipo]
         effort = cfg["effort"][self.tipo]
-        messages = [{"role": "user", "content": self.c.contesto(self) + "\n\n## Compito\n" + self.compito}]
+        stabile, variabile = self.c.contesto(self)
+        messages = [{"role": "user", "content": [
+            {"type": "text", "text": stabile, "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": "## Compito\n" + self.compito},
+            {"type": "text", "text": variabile},
+        ]}]
         inizio = time.monotonic()
         testo_finale = ""
         log.info("Risveglio %s (modello %s, budget residuo %.3f $)", self.id, modello,
@@ -620,7 +625,7 @@ class Centralino:
     def prompt_sistema(self) -> str:
         return PROMPT_BASE + (VITA / "costituzione.md").read_text()
 
-    def contesto(self, r: Risveglio) -> str:
+    def contesto(self, r: Risveglio) -> tuple[str, str]:
         cfg = self.cfg
         adesso = ora(cfg)
         oggi = adesso.date().isoformat()
@@ -632,6 +637,15 @@ class Centralino:
             p = VITA / nome
             return p.read_text() if p.exists() else "(vuoto)"
         scad = dt.date.fromisoformat(cfg["chiave_api_scadenza"])
+        # Prima la parte che cambia di rado (resta in cache tra un messaggio e l'altro), in fondo ora e conti.
+        stabile = "\n".join([
+            "# I tuoi file (scritto dal centralino)",
+            "## memoria.md", leggi("memoria.md"),
+            "",
+            "## Ultime voci del diario", ultime,
+            "",
+            "## desideri.md", leggi("desideri.md"),
+        ])
         parti = [
             "# Contesto del risveglio (scritto dal centralino)",
             f"- Ora: {GIORNI[adesso.weekday()]} {adesso.strftime('%Y-%m-%d %H:%M')} ({cfg['fuso_orario']})",
@@ -647,14 +661,8 @@ class Centralino:
             f"{credito_residuo(cfg):.2f} $",
             f"- La chiave API scade il {scad.isoformat()} (tra {(scad - adesso.date()).days} giorni)",
             f"- Ricavi finora: 0 $",
-            "",
-            "## memoria.md", leggi("memoria.md"),
-            "",
-            "## Ultime voci del diario", ultime,
-            "",
-            "## desideri.md", leggi("desideri.md"),
         ]
-        return "\n".join(parti)
+        return stabile, "\n".join(parti)
 
     # --- chat log (privato) ---------------------------------------------------
     def log_chat(self, chi: str, testo: str, tipo: str = "chat"):
