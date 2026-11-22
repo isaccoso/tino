@@ -4,18 +4,28 @@
     "battito": "claude-haiku-5-5",
     "riflessione": "claude-opus-5-5",
     "chat": "claude-sonnet-5-5",
-    "pensa": "claude-opus-5-5"
+    "pensa": "claude-opus-5-5",
+    "lavoro": "claude-sonnet-5-5"
   },
   "effort": {
     "battito": "low",
     "riflessione": "medium",
     "chat": "low",
-    "pensa": "high"
+    "pensa": "high",
+    "lavoro": "medium"
   },
-  "battiti_ore": [2, 8, 14, 20],
+  "battiti_ore": [
+    2,
+    8,
+    14,
+    20
+  ],
   "riflessione_ora": 22,
   "finestra_recupero_ore": 3,
-  "budget_giornaliero_usd": {"autonomia": 0.40, "gianluca": 0.30},
+  "budget_giornaliero_usd": {
+    "autonomia": 0.4,
+    "gianluca": 0.3
+  },
   "max_passaggi": 15,
   "max_secondi_risveglio": 300,
   "max_messaggi_a_gianluca_per_risveglio": 3,
@@ -26,5 +36,9 @@
   "avviso_scadenza_giorni": 5,
   "remote_git": "git@github-tino:isaccoso/tino.git",
   "git_autore": "Tino",
-  "git_email": "tino@gianlucaiunco.com"
+  "git_email": "tino@gianlucaiunco.com",
+  "lavoro_ore": [
+    8,
+    14
+  ]
 }

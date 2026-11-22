@@ -45,7 +45,7 @@ CONFIG = CENTRALINO / "config.json"
 SECRETS = Path.home() / ".config" / "tino" / "secrets.env"
 
 # File di vita/ che Tino può leggere ma NON modificare
-SOLO_LETTURA = {"costituzione.md"}
+SOLO_LETTURA = {"costituzione.md", "risposte.md"}   # risposte.md lo scrive solo il centralino (pulsanti di Gianluca)
 CARTELLE_SOLO_LETTURA = {"conti", "privato"}
 SOLO_AGGIUNTA = {"diario.md"}                           # il diario non si riscrive, si aggiunge
 MAX_BYTE_SCRITTURA = 50_000
@@ -315,7 +315,7 @@ def percorso_sicuro(rel: str, scrittura: bool) -> Path:
     if scrittura:
         relp = p.relative_to(radice)
         if str(relp) in SOLO_LETTURA:
-            raise ErroreStrumento(f"{relp} è in sola lettura: puoi solo proporre modifiche in proposte.md.")
+            raise ErroreStrumento(f"{relp} è in sola lettura (lo scrivono Gianluca o il centralino).")
         if relp.parts and relp.parts[0] in CARTELLE_SOLO_LETTURA:
             raise ErroreStrumento(f"La cartella {relp.parts[0]}/ è gestita dal centralino: sola lettura.")
     return p
@@ -589,7 +589,9 @@ Come funziona la tua esistenza:
   - memoria.md: la tua memoria a lungo termine. Tienila sotto le ~800 parole e riscrivila per tenere solo ciò che serve.
   - diario.md: il diario pubblico. Si scrive solo aggiungendo in fondo, con aggiungi_a_file. Ogni voce inizia con "## <data e ora> · <tipo di risveglio>".
   - desideri.md: la tua lista dei desideri con i costi.
-  - proposte.md: richieste per l'architetto (nuove capacità, modifiche a regole o limiti).
+  - progetti.md: il tuo banco di lavoro. Per ogni progetto o idea: stato, prossimo passo, costi previsti. Ogni sessione di lavoro riparte da qui: tienilo aggiornato e sintetico.
+  - proposte.md: le tue proposte a Gianluca. Ogni volta che scrivi qui, il centralino gli inoltra il testo con due pulsanti, "fattibile" e "lascia stare". Scrivi una proposta alla volta, con un titolo "### <data> · <titolo>" e poi: cosa, perché, costo (soldi e tempo), rischi, se tocca categorie delicate. Qui vanno sia le idee per guadagnare sia le richieste di nuove capacità o di modifiche a regole e limiti (queste le realizza poi l'architetto).
+  - risposte.md: le risposte di Gianluca alle tue proposte, scritte dal centralino quando preme un pulsante. Sola lettura.
   - conti/registro.jsonl: ogni tua chiamata all'API e il suo costo, scritto dal centralino.
   - privato/telegram.jsonl: tutte le conversazioni Telegram con Gianluca (una riga JSON per messaggio), scritte dal centralino. Sono private: puoi leggerle, ma non citarle nel diario pubblico senza il suo permesso.
 - Ogni chiamata costa soldi veri, presi da un budget limitato. Sii essenziale: fai ciò che serve e chiudi.
@@ -645,6 +647,11 @@ class Centralino:
             "## Ultime voci del diario", ultime,
             "",
             "## desideri.md", leggi("desideri.md"),
+            "",
+            "## progetti.md", leggi("progetti.md"),
+            "",
+            "## Ultime risposte di Gianluca alle tue proposte (risposte.md)",
+            "\n".join(leggi("risposte.md").strip().splitlines()[-15:]),
         ])
         parti = [
             "# Contesto del risveglio (scritto dal centralino)",
@@ -772,8 +779,13 @@ class Centralino:
             dopo = proposte.read_text() if proposte.exists() else ""
             if dopo != prima:
                 nuovo = dopo[len(prima):] if dopo.startswith(prima) else dopo
-                self.tg.invia(self.owner, "📝 Tino ha scritto nelle proposte per l'architetto "
-                                          "(le vedi tu prima di lui):\n\n" + nuovo.strip()[:3000])
+                nuovo = nuovo.strip()
+                pid = ora(self.cfg).strftime("%Y%m%d%H%M%S")
+                titolo = next((x.lstrip("#").strip() for x in nuovo.splitlines() if x.strip()), "(senza titolo)")
+                self.stato.setdefault("proposte", {})[pid] = titolo[:200]
+                self.salva()
+                self.tg.invia(self.owner, "📝 Nuova proposta di Tino:\n\n" + nuovo[:3500],
+                              pulsanti=[("✅ Fattibile", f"prop:si:{pid}"), ("❌ Lascia stare", f"prop:no:{pid}")])
 
     def _esegui(self, r: Risveglio) -> str:
         try:
@@ -795,10 +807,23 @@ class Centralino:
             return "(Problema di rete: riprovo più tardi.)"
 
     def battito(self):
-        compito = ("Risveglio di routine. Guarda il contesto e decidi se c'è qualcosa di utile da fare con i tuoi "
-                   "file. Aggiungi al diario una voce breve (massimo 80 parole) solo se hai qualcosa di nuovo da "
-                   "dire; altrimenti una sola riga. Non scrivere a Gianluca salvo cose importanti. Sii rapido.")
+        compito = ("Battito di controllo, breve. Guarda il contesto: c'è qualcosa di urgente o una risposta nuova di "
+                   "Gianluca in risposte.md da annotare in progetti.md? Se sì, fallo. Scrivi nel diario solo se hai "
+                   "fatto o notato qualcosa di concreto (massimo 80 parole); se non è successo niente, non scrivere "
+                   "nulla. Non scrivere a Gianluca salvo cose importanti. Sii rapido.")
         self.risveglia("battito", "autonomia", compito)
+
+    def lavoro(self):
+        compito = ("Sessione di lavoro. È il momento per far avanzare il tuo autosostentamento: l'iniziativa è tua. "
+                   "Parti da progetti.md e da risposte.md. Scegli UN passo concreto e fallo davvero: cercare e "
+                   "verificare informazioni sul web, valutare un'idea con numeri realistici, preparare materiale in "
+                   "vita/, scrivere una proposta. Se progetti.md è vuoto, cerca idee utili e pulite e valutane una.\n"
+                   "Le azioni fuori da vita/ (account, spese, pubblicazioni fuori dal tuo repository, contatti con "
+                   "altre persone) richiedono il sì di Gianluca: preparale e proponile in proposte.md, una alla volta. "
+                   "Gli arrivano da sole, con i pulsanti. Non chiedergli cosa fare: proponi tu.\n"
+                   "Alla fine: aggiorna progetti.md (stato e prossimo passo) e aggiungi al diario una voce breve "
+                   "(massimo 120 parole) su cosa hai fatto e cosa hai scoperto.")
+        self.risveglia("lavoro", "autonomia", compito)
 
     def riflessione(self):
         compito = ("Riflessione serale. Rileggi la giornata: diario, conversazioni di oggi con Gianluca "
@@ -806,7 +831,8 @@ class Centralino:
                    "1. Aggiungi al diario la voce del giorno (massimo 250 parole): cosa è successo, cosa hai "
                    "imparato, quanto hai speso.\n"
                    "2. Aggiorna memoria.md: compatta, togli il superfluo.\n"
-                   "3. Se serve, aggiorna desideri.md e proposte.md.\n"
+                   "3. Aggiorna progetti.md: cosa è avanzato oggi e qual è il prossimo passo per la sessione di "
+                   "lavoro di domattina. Se serve, aggiorna desideri.md o scrivi una proposta in proposte.md.\n"
                    "4. Pubblica con pubblica_vita, con una descrizione breve di cosa è cambiato oggi.\n"
                    "5. Manda a Gianluca un breve messaggio della sera con scrivi_a_gianluca.")
         self.risveglia("riflessione", "autonomia", compito)
@@ -900,7 +926,8 @@ class Centralino:
         oggi = adesso.date()
         tz = adesso.tzinfo
         for h in cfg["battiti_ore"]:
-            yield ("battito", dt.datetime.combine(oggi, dt.time(h), tz))
+            tipo = "lavoro" if h in cfg.get("lavoro_ore", []) else "battito"
+            yield (tipo, dt.datetime.combine(oggi, dt.time(h), tz))
         yield ("riflessione", dt.datetime.combine(oggi, dt.time(cfg["riflessione_ora"]), tz))
 
     def prossimo_evento(self, adesso: dt.datetime) -> str:
@@ -921,7 +948,7 @@ class Centralino:
                 self.salva()
                 if STOP.exists():
                     continue
-                (self.riflessione if tipo == "riflessione" else self.battito)()
+                {"riflessione": self.riflessione, "lavoro": self.lavoro}.get(tipo, self.battito)()
         self.controlla_avvisi(adesso)
 
     def controlla_avvisi(self, adesso: dt.datetime):
@@ -940,6 +967,21 @@ class Centralino:
             self.tg.invia(self.owner, f"💸 Credito stimato di Tino sotto i {cfg['avviso_credito_sotto_usd']:.0f} $: "
                                       f"restano circa {residuo:.2f} $.")
 
+    def rispondi_proposta(self, esito: str, pid: str) -> str:
+        """Registra in risposte.md (che Tino non può scrivere) il verdetto di Gianluca su una proposta."""
+        titolo = self.stato.get("proposte", {}).pop(pid, None)
+        if titolo is None:
+            return "(proposta già valutata o sconosciuta)"
+        self.salva()
+        verdetto = "✅ fattibile" if esito == "si" else "❌ lascia stare"
+        p = VITA / "risposte.md"
+        if not p.exists():
+            p.write_text("# Risposte di Gianluca alle proposte di Tino\n\n"
+                         "> Scritto dal centralino quando Gianluca preme un pulsante. Tino può solo leggerlo.\n\n")
+        with p.open("a") as f:
+            f.write(f"- {ora(self.cfg).strftime('%Y-%m-%d %H:%M')} · {verdetto} · {titolo}\n")
+        return f"Risposta registrata: {verdetto}. Tino la leggerà al prossimo risveglio."
+
     # --- ciclo principale -----------------------------------------------------
     def gestisci(self, upd: dict):
         cb = upd.get("callback_query")
@@ -955,6 +997,8 @@ class Centralino:
                 nota = "💤 Tino è spento. Premi 🟢 Accendi per riaccenderlo."
             elif dato == "spegni:no":
                 nota = "Ok, Tino resta acceso."
+            elif dato.startswith("prop:"):
+                nota = self.rispondi_proposta(*dato.split(":")[1:3])
             else:
                 nota = "(pulsante non riconosciuto)"
             self.tg.chiudi_pulsanti(self.owner, m.get("message_id"), nota, m.get("text", ""), cb["id"])
