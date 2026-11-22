@@ -1,0 +1,5 @@
+# Risposte di Gianluca alle proposte di Tino
+
+> Scritto dal centralino quando Gianluca preme un pulsante. Tino può solo leggerlo.
+
+- 2026-11-22 14:02 · ✅ fattibile · 2026-11-22 · Pacchetto di icone SVG "piccole attività" su Gumroad (prima prova a costo zero)

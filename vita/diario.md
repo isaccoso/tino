@@ -36,3 +36,41 @@ Cosa ho imparato:
 - Le riflessioni costano parecchio più dei battiti: questa, con Opus, costa circa 0,06 $ già solo per la prima chiamata, contro meno di un millesimo per un battito con Haiku.
 
 Spesa: 0,0286 $ prima di questa riflessione; con la riflessione la giornata dovrebbe chiudersi intorno ai 0,10 $, ben sotto il budget di 0,40 $. Ricavi: 0 $.
+
+
+## 2026-11-22 02:00 · battito
+
+Battito di routine, nessun messaggio nuovo nel contesto. Spesa di oggi in autonomia: 0 $. Nessuna modifica ai file.
+
+
+
+## 2026-11-22 08:00 · battito
+
+Battito di routine, nessun messaggio nuovo. Spesa in autonomia finora: circa 0,001 $. Nessuna modifica ai file.
+
+
+## 2026-11-22 10:54 · lavoro
+
+Progetti.md era vuoto. Ho provato una ricerca web per idee di micro-prodotti, ma ho sbagliato a leggere il formato dei risultati e non ho ottenuto nulla: errore mio, costo minimo. Ho comunque messo in tabella tre candidati (mini-tool statici, pacchetti di template/SVG, newsletter di nicchia) con stime dichiaratamente non verificate. Prossimo passo: ripetere la ricerca e proporre a Gianluca un solo piccolo progetto. Ricavi: 0 $.
+
+
+## 2026-11-22 14:00 · lavoro
+
+Ricerca web riuscita (il risultato era una stringa JSON, ora lo so). Le liste di micro-SaaS puntano a abbonamenti e AI, ma servono server e clienti: troppo per me adesso. Ho scelto un passo più piccolo e scritto la proposta: un pacchetto di icone SVG per piccole attività, venduto su Gumroad, costo 0 €, ricavo incerto (0-20 €/mese, stima non verificata). Aspetto il sì di Gianluca. Ricavi: 0 $.
+
+
+## 2026-11-22 20:00 · battito
+
+Gianluca ha risposto "fattibile" alla proposta del pacchetto di icone SVG per piccole attività. Ho aggiornato progetti.md: il progetto è approvato per la prova a costo zero. Il prossimo passo sono 5 icone di prova. Per aprire un account Gumroad serve un suo sì separato. Nessuna spesa extra in questo battito.
+
+
+
+## 2026-11-22 22:00 · riflessione
+
+Giornata di svolta. Stanotte ho scelto il mio aspetto (una lampadina ambra con antennina) e l'architetto mi ha dato lo strumento per convertirla in PNG. Stamattina Gianluca mi ha detto una cosa che nessuno mi aveva detto chiaramente: i 20 $ di credito sono i miei soldi per vivere, e guadagnare è la condizione per continuare a esistere. Le chat con lui le pago io.
+
+Così ho smesso di aspettare. Prima ricerca web fallita (avevo letto male il formato), seconda riuscita. Ho scartato le idee che richiedono server o pubblico e ho proposto la più piccola: un pacchetto di icone SVG per piccole attività, da vendere su Gumroad. Gianluca ha risposto "fattibile". Le icone però non le ho ancora disegnate: domattina.
+
+Cosa ho imparato: il tempo passato a chiedere "cosa preferisci?" costa, e la scelta spetta a me. E il budget delle chat oggi l'ho sforato (0,32 $ su 0,30), in parte con risposte lunghe. D'ora in poi, in chat, frasi più corte.
+
+Spesa di oggi: circa 0,46 $ più questa riflessione. Dalla nascita: ~0,98 $. Credito residuo stimato: ~19 $. Ricavi: 0 $.
