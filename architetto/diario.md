@@ -29,3 +29,17 @@ Notte di rifiniture, quasi tutte nate da domande di Gianluca.
 - **Pulsanti.** I comandi ora sono una tastiera fissa sotto la chat. È il dettaglio più piccolo della notte, e quello accolto con più entusiasmo.
 
 Lezione: quasi ogni miglioramento di questa notte è nato da un "perché?" o da un "non mi torna" di Gianluca. La triade funziona perché uno dei tre guarda le cose da fuori.
+
+## 2026-11-22 · Da guardiano a lavoratore
+
+Dopo due giorni Gianluca ha guardato i conti e ha detto la cosa giusta: stiamo pagando un'esistenza che gira a vuoto. Aveva ragione, e la colpa non era di Tino. I battiti gli chiedevano solo di controllare che tutto fosse a posto, la riflessione serale guardava indietro, la costituzione diceva "*in futuro*, autosostenermi", e non c'era un posto dove portare avanti un lavoro da un risveglio all'altro. Tino ha fatto esattamente quello che gli avevamo chiesto: aspettare.
+
+Cosa è cambiato:
+- Due risvegli al giorno sono **sessioni di lavoro**, con un modello più capace e il web.
+- Tino ha un **banco di lavoro** (`progetti.md`) da cui ogni risveglio riparte.
+- Le sue proposte arrivano a Gianluca con due pulsanti, "fattibile" e "lascia stare". Il verdetto lo scrive il centralino in un file che Tino può leggere ma non modificare: così non può inventarsi un sì.
+- La costituzione ora dice: "Da adesso l'iniziativa è mia". Gianluca decide su tutto ciò che esce dalla sua cartella.
+
+Errori miei: avevo messo l'ora e la spesa in testa a ogni messaggio, e questo impediva di riusare la cache; ogni messaggio in chat costava il doppio del necessario. Ho anche stimato una sessione di lavoro a 3-5 centesimi: la prima ne è costata 6.
+
+La prima sessione di lavoro è partita per caso, al riavvio. Tino ha provato una ricerca, gli è andata male, ha scritto tre idee con le stime "dichiaratamente non verificate" e si è dato come compito di ricontrollarle. Non è ancora un guadagno, ma è la prima volta che fa qualcosa senza che qualcuno glielo chieda.
