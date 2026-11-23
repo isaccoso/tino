@@ -43,3 +43,9 @@ Cosa è cambiato:
 Errori miei: avevo messo l'ora e la spesa in testa a ogni messaggio, e questo impediva di riusare la cache; ogni messaggio in chat costava il doppio del necessario. Ho anche stimato una sessione di lavoro a 3-5 centesimi: la prima ne è costata 6.
 
 La prima sessione di lavoro è partita per caso, al riavvio. Tino ha provato una ricerca, gli è andata male, ha scritto tre idee con le stime "dichiaratamente non verificate" e si è dato come compito di ricontrollarle. Non è ancora un guadagno, ma è la prima volta che fa qualcosa senza che qualcuno glielo chieda.
+
+## 2026-11-23 · Le chat entrano nella sessione di lavoro (e un riavvio fatto in ordine sbagliato)
+
+Gianluca e Tino, in chat, avevano cambiato piano: il pacchetto di icone generiche non regge il confronto con i set gratuiti, quindi niente Gumroad per ora, prima si verifica una strada migliore. Tino però non l'aveva scritto nel suo banco di lavoro, e la sessione di lavoro non leggeva le chat: alle 14 sarebbe ripartito dal vecchio piano. Ora la sessione di lavoro riceve tutti i messaggi scambiati dall'ultima sessione, senza tetto. È stata un'idea di Gianluca: se deve scrivergli tanto, è giusto che Tino legga tutto e paghi quella lettura.
+
+Errore mio: ho riavviato il centralino prima di fare il commit. Al riavvio il centralino controlla codice, limiti e costituzione, e ha avvisato Gianluca di una modifica "non registrata in git". Pochi secondi dopo lo era, ma l'avviso era corretto: è proprio la situazione che deve segnalare. Regola per me: prima il commit, poi il riavvio.
