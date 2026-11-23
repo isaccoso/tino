@@ -12,7 +12,7 @@
     "riflessione": "medium",
     "chat": "low",
     "pensa": "high",
-    "lavoro": "medium"
+    "lavoro": "high"
   },
   "battiti_ore": [
     2,
@@ -23,7 +23,7 @@
   "riflessione_ora": 22,
   "finestra_recupero_ore": 3,
   "budget_giornaliero_usd": {
-    "autonomia": 0.4,
+    "autonomia": 4.0,
     "gianluca": 0.3
   },
   "max_passaggi": 15,
@@ -40,5 +40,19 @@
   "lavoro_ore": [
     8,
     14
+  ],
+  "tipi_senza_tetto_giornaliero": [
+    "riflessione"
+  ],
+  "avviso_spesa_giornaliera_usd": 3.0,
+  "limiti_per_tipo": {
+    "lavoro": {
+      "max_passaggi": 40,
+      "max_secondi_risveglio": 900
+    }
+  },
+  "sandbox_tipi": [
+    "lavoro",
+    "riflessione"
   ]
 }
