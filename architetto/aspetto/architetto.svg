@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <title>L'architetto di Tino</title>
+  <!-- foglio da progetto -->
+  <rect width="200" height="200" rx="28" fill="#0f3b5f"/>
+  <g stroke="#ffffff" stroke-opacity="0.08" stroke-width="1">
+    <path d="M20 0V200M40 0V200M60 0V200M80 0V200M100 0V200M120 0V200M140 0V200M160 0V200M180 0V200"/>
+    <path d="M0 20H200M0 40H200M0 60H200M0 80H200M0 100H200M0 120H200M0 140H200M0 160H200M0 180H200"/>
+  </g>
+  <!-- l'arco che il compasso sta tracciando, intorno a Tino -->
+  <path d="M144 148 A66 66 0 0 0 16 125" fill="none" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M16 125 A66 66 0 0 0 12 148" fill="none" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+  <!-- Tino: la piccola luce al centro -->
+  <circle cx="78" cy="148" r="13" fill="#fca311" opacity="0.25"/>
+  <circle cx="78" cy="148" r="7" fill="#fca311"/>
+  <!-- compasso -->
+  <g stroke="#e5e5e5" stroke-width="6" stroke-linecap="round">
+    <line x1="112" y1="44" x2="78" y2="148"/>
+    <line x1="112" y1="44" x2="144" y2="148"/>
+  </g>
+  <line x1="102" y1="78" x2="122" y2="78" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="112" cy="42" r="9" fill="#e5e5e5"/>
+  <line x1="112" y1="33" x2="112" y2="20" stroke="#e5e5e5" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="112" cy="42" r="3" fill="#0f3b5f"/>
+</svg>
