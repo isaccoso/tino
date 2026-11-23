@@ -823,7 +823,19 @@ class Centralino:
                    "Gli arrivano da sole, con i pulsanti. Non chiedergli cosa fare: proponi tu.\n"
                    "Alla fine: aggiorna progetti.md (stato e prossimo passo) e aggiungi al diario una voce breve "
                    "(massimo 120 parole) su cosa hai fatto e cosa hai scoperto.")
+        chat = self.chat_dall_ultimo_lavoro()
+        if chat:
+            compito += ("\n\nDall'ultima sessione di lavoro o riflessione, tu e Gianluca vi siete scritti questo. "
+                        "Tienine conto: se avete deciso qualcosa, vale più di progetti.md.\n" + chat)
         self.risveglia("lavoro", "autonomia", compito)
+
+    def chat_dall_ultimo_lavoro(self) -> str:
+        """Tutti i messaggi Telegram arrivati dopo l'ultima sessione di lavoro o riflessione (nessun tetto)."""
+        fatti = [x["quando"] for x in leggi_jsonl(REGISTRO) if x.get("tipo") in ("lavoro", "riflessione")]
+        da = max(map(dt.datetime.fromisoformat, fatti)) if fatti else None
+        righe = [x for x in leggi_jsonl(CHAT_LOG) if da is None or dt.datetime.fromisoformat(x["quando"]) > da]
+        return "\n".join(f"[{x['quando'][5:16].replace('T', ' ')}] "
+                         f"{'Gianluca' if x['chi'] == 'gianluca' else 'Tino'}: {x['testo']}" for x in righe)
 
     def riflessione(self):
         compito = ("Riflessione serale. Rileggi la giornata: diario, conversazioni di oggi con Gianluca "
