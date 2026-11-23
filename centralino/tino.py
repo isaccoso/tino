@@ -424,6 +424,7 @@ class Risveglio:
         self.id = ora(self.cfg).strftime("%Y%m%d-%H%M%S") + "-" + tipo
         self.messaggi_inviati = 0
         self.costo = 0.0
+        self.pubblicato = False        # Tino ha usato pubblica_vita in questo risveglio
         self.container = None          # sandbox di Anthropic, riusata per tutto il risveglio
         self.prodotti: list[str] = []  # file scaricati dalla sandbox in vita/prodotti/
 
@@ -499,6 +500,7 @@ class Risveglio:
                 raise ErroreStrumento("Conversione non riuscita: " + (r.stderr.strip()[-300:] or "errore sconosciuto"))
             return f"Creato {dest.relative_to(VITA.resolve())} ({dest.stat().st_size} byte)."
         if nome == "pubblica_vita":
+            self.pubblicato = True
             return self.c.pubblica_vita(inp["descrizione"])
         raise ErroreStrumento(f"Strumento sconosciuto: {nome}")
 
@@ -891,9 +893,13 @@ class Centralino:
         """Paracadute della riflessione: se Tino si è fermato prima di pubblicare o di scrivere a Gianluca,
         il centralino pubblica vita/ da solo e lo avvisa. Così la giornata non resta mai a metà."""
         try:
-            pubblicato = self.pubblica_vita("chiusura automatica della riflessione (Tino si è fermato prima)")
-            if pubblicato.startswith("Niente"):
-                pubblicato = ""
+            # Se Tino ha già pubblicato, ciò che resta (le ultime righe del registro) parte con la prossima
+            # pubblicazione: nessun commit automatico e nessun messaggio fuorviante.
+            pubblicato = ""
+            if not r.pubblicato:
+                pubblicato = self.pubblica_vita("chiusura automatica della riflessione (Tino si è fermato prima)")
+                if pubblicato.startswith("Niente"):
+                    pubblicato = ""
             if r.messaggi_inviati == 0:
                 self.tg.invia(self.owner, "🌙 La riflessione di Tino si è chiusa senza il messaggio della sera "
                               f"(costo {r.costo:.3f} $). " + ("Ho pubblicato io i suoi file." if pubblicato
