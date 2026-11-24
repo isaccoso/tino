@@ -508,7 +508,7 @@ class Risveglio:
     def strumenti(self, modello: str) -> list:
         tools = list(STRUMENTI_TINO)
         if modello in MODELLI_WEB:
-            n = self.cfg["max_ricerche_web_per_risveglio"]
+            n = limite(self.cfg, self.tipo, "max_ricerche_web_per_risveglio")
             if sandbox_attiva(self.cfg, self.tipo, modello):
                 # Con la sandbox si usano le versioni base degli strumenti web: le _20260209 hanno già
                 # un loro ambiente di esecuzione, e due ambienti insieme confondono il modello.
@@ -741,12 +741,13 @@ class Centralino:
             f"su {cfg['budget_giornaliero_usd']['gianluca']:.2f} $. "
             + (f"Questo risveglio non ha tetto giornaliero: i limiti sono solo "
              f"{limite(cfg, r.tipo, 'max_passaggi')} passaggi, {limite(cfg, r.tipo, 'max_secondi_risveglio') // 60} "
-             f"minuti e {cfg['max_ricerche_web_per_risveglio']} ricerche web. Ogni centesimo esce comunque dal tuo credito."
+             f"minuti e {limite(cfg, r.tipo, 'max_ricerche_web_per_risveglio')} ricerche web. Ogni centesimo esce comunque dal tuo credito."
              if senza_tetto(cfg, r.tipo) else
              f"Il tetto di '{r.categoria}' è un limite di sicurezza contro gli incidenti, non una cifra da spendere: "
              f"il limite vero è il tuo credito. Restano {max(0, budget_residuo(cfg, r.categoria)):.4f} $; questo "
-             f"risveglio ha fino a {limite(cfg, r.tipo, 'max_passaggi')} passaggi e "
-             f"{limite(cfg, r.tipo, 'max_secondi_risveglio') // 60} minuti."),
+             f"risveglio ha fino a {limite(cfg, r.tipo, 'max_passaggi')} passaggi, "
+             f"{limite(cfg, r.tipo, 'max_secondi_risveglio') // 60} minuti e "
+             f"{limite(cfg, r.tipo, 'max_ricerche_web_per_risveglio')} ricerche web."),
             f"- Spesa totale dalla nascita: {totale:.4f} $ · credito residuo stimato: "
             f"{credito_residuo(cfg):.2f} $",
             f"- La chiave API scade il {scad.isoformat()} (tra {(scad - adesso.date()).days} giorni)",
