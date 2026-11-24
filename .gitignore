@@ -10,6 +10,7 @@ centralino/stato.json
 centralino/STOP
 centralino/PUSH_SOSPESO
 centralino/annullati/
+centralino/trascrizioni/
 centralino/*.log
 centralino/*.tmp
 __pycache__/

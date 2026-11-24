@@ -203,6 +203,21 @@ def sandbox_attiva(cfg, tipo: str, modello: str) -> bool:
 ESTENSIONI_PRODOTTI = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".csv", ".xlsx", ".docx", ".pptx",
                        ".txt", ".md", ".json", ".html", ".py", ".js", ".zip", ".epub"}
 MAX_BYTE_PRODOTTO = 20_000_000
+TRASCRIZIONI = CENTRALINO / "trascrizioni"              # privato: ogni sessione per intero, fuori dal repository
+RX_PRODOTTO = re.compile(r"prodotti/([\w./-]+?\.(?:" + "|".join(e[1:] for e in sorted(ESTENSIONI_PRODOTTI)) + r"))\b")
+
+
+def per_trascrizione(x, massimo: int = 4000):
+    """Rende serializzabile un blocco dell'API (o un nostro dizionario) e taglia le stringhe lunghe (immagini)."""
+    if hasattr(x, "model_dump"):
+        x = x.model_dump(mode="json", exclude_none=True)
+    if isinstance(x, dict):
+        return {k: per_trascrizione(v, massimo) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [per_trascrizione(v, massimo) for v in x]
+    if isinstance(x, str) and len(x) > massimo:
+        return x[:massimo] + f" […{len(x) - massimo} caratteri tagliati]"
+    return x
 
 
 def senza_tetto(cfg, tipo: str) -> bool:
@@ -447,6 +462,8 @@ class Risveglio:
         self.pubblicato = False        # Tino ha usato pubblica_vita in questo risveglio
         self.container = None          # sandbox di Anthropic, riusata per tutto il risveglio
         self.prodotti: list[str] = []  # file scaricati dalla sandbox in vita/prodotti/
+        self.testi_scritti: list[str] = []   # ciò che Tino ha scritto nei file in questo risveglio
+        self.prodotti_controllati = False
 
     # --- esecuzione strumenti -------------------------------------------------
     def esegui(self, nome: str, inp: dict) -> str | list:
@@ -464,6 +481,8 @@ class Risveglio:
             for x in sorted(p.iterdir()):
                 righe.append(f"{x.name}/" if x.is_dir() else f"{x.name} ({x.stat().st_size} byte)")
             return "\n".join(righe) or "(vuota)"
+        if nome in ("scrivi_file", "aggiungi_a_file"):
+            self.testi_scritti.append(inp.get("contenuto") or inp.get("testo") or "")
         if nome == "scrivi_file":
             p = percorso_sicuro(inp["percorso"], scrittura=True)
             if p.name in SOLO_AGGIUNTA and p.parent.resolve() == VITA.resolve():
@@ -565,6 +584,11 @@ class Risveglio:
                           {"type": "web_fetch_20260209", "name": "web_fetch", "max_uses": n}]
         return tools
 
+    def prodotti_mancanti(self, testo_finale: str = "") -> list[str]:
+        """File di prodotti/ nominati in ciò che Tino ha scritto in questo risveglio, ma assenti in vita/prodotti/."""
+        nominati = {m.group(1) for t in [*self.testi_scritti, testo_finale] for m in RX_PRODOTTO.finditer(t or "")}
+        return sorted(n for n in nominati if not (VITA / "prodotti" / os.path.basename(n)).exists())
+
     def scarica_prodotti(self, risposta):
         """Salva in vita/prodotti/ i file creati nella sandbox (output dei comandi bash)."""
         for b in risposta.content:
@@ -615,6 +639,15 @@ class Risveglio:
         inizio = time.monotonic()
         testo_finale = ""
         troncature = 0
+        TRASCRIZIONI.mkdir(mode=0o700, exist_ok=True)
+        trascrizione = TRASCRIZIONI / f"{self.id}.jsonl"
+        def traccia(evento: dict):
+            try:
+                aggiungi_jsonl(trascrizione, per_trascrizione(
+                    {"quando": ora(cfg).isoformat(timespec="seconds"), **evento}))
+            except Exception:
+                log.exception("Trascrizione non riuscita")
+        traccia({"evento": "inizio", "tipo": self.tipo, "modello": modello, "messaggio": messages[0]})
         log.info("Risveglio %s (modello %s, budget residuo %.3f $)", self.id, modello,
                  budget_residuo(cfg, self.categoria))
 
@@ -656,6 +689,8 @@ class Risveglio:
             cont = getattr(risposta, "container", None)
             if cont is not None:
                 self.container = cont.id
+            traccia({"evento": "risposta", "passaggio": passaggio, "stop_reason": risposta.stop_reason,
+                     "container": self.container, "contenuto": risposta.content})
             self.scarica_prodotti(risposta)
 
             if risposta.stop_reason == "refusal":
@@ -689,6 +724,23 @@ class Risveglio:
                     ultimo["content"] = [{"type": "text", "text": ultimo["content"]}]
                 ultimo["content"] = list(ultimo["content"]) + [avviso]
                 continue
+            if risposta.stop_reason == "end_turn" and not self.prodotti_controllati:
+                self.prodotti_controllati = True
+                mancanti = self.prodotti_mancanti(testo_finale)
+                if mancanti:
+                    # Tino nomina file di prodotti/ che non sono arrivati: glielo diciamo finché può rimediare.
+                    log.warning("Prodotti nominati ma non arrivati in %s: %s", self.id, mancanti)
+                    avviso = ("[Centralino] Controllo di fine sessione: nei tuoi file o nella tua risposta nomini "
+                              f"questi file di prodotti/, ma in vita/prodotti/ non sono arrivati: {', '.join(mancanti)}. "
+                              "Un file della sandbox arriva solo se un comando bash lo crea o lo copia in /tmp/outputs/ "
+                              "(per esempio: cp /tmp/w/kit.zip /tmp/outputs/), e arriva appena quel comando finisce, "
+                              "non a fine sessione. I file arrivano tutti in vita/prodotti/, senza sottocartelle. "
+                              "Se i file sono ancora nella sandbox, copiali ora in /tmp/outputs/; se non ci sono più, "
+                              "correggi ciò che hai scritto (proposte, progetti, memoria) perché non dica il falso.")
+                    traccia({"evento": "avviso_prodotti", "mancanti": mancanti})
+                    messages.append({"role": "assistant", "content": risposta.content})
+                    messages.append({"role": "user", "content": [{"type": "text", "text": avviso}]})
+                    continue
             if risposta.stop_reason != "tool_use":
                 break
 
@@ -708,11 +760,18 @@ class Risveglio:
                     risultati.append({"type": "tool_result", "tool_use_id": b.id,
                                       "content": f"Errore interno: {type(e).__name__}", "is_error": True})
             messages.append({"role": "user", "content": risultati})
+            traccia({"evento": "risultati_strumenti", "contenuto": risultati})
         else:
             log.warning("Massimo passaggi raggiunto in %s", self.id)
 
         if self.prodotti:
             testo_finale += "\n\n(Salvati in vita/prodotti/: " + ", ".join(self.prodotti) + ")"
+        mancanti = self.prodotti_mancanti(testo_finale) if self.prodotti_controllati else []
+        if mancanti:
+            self.c.tg.invia(self.c.owner, f"⚠️ Fine del risveglio {self.id}: Tino nomina file di prodotti/ che non "
+                                          f"sono arrivati in vita/: {', '.join(mancanti)}. Non fidarti di proposte "
+                                          "che li danno per pronti (dettagli nella trascrizione).")
+        traccia({"evento": "fine", "costo": round(self.costo, 6), "prodotti": self.prodotti, "mancanti": mancanti})
         log.info("Fine risveglio %s: costo %.4f $", self.id, self.costo)
         return testo_finale
 
