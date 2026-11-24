@@ -49,6 +49,7 @@ PAROLE_VIETATE = Path.home() / ".config" / "tino" / "parole_vietate.txt"   # una
 # File di vita/ che Tino può leggere ma NON modificare
 SOLO_LETTURA = {"costituzione.md", "risposte.md"}   # risposte.md lo scrive solo il centralino (pulsanti di Gianluca)
 CARTELLE_SOLO_LETTURA = {"conti", "privato"}
+CARTELLE_CANCELLABILI = {"prodotti", "negozio"}         # elimina_file funziona solo qui (24/11)
 PRIVATI_SCRIVIBILI = {"privato/appunti.md"}            # il quaderno privato di Tino: mai pubblicato
 SOLO_AGGIUNTA = {"diario.md"}                           # il diario non si riscrive, si aggiunge
 MAX_BYTE_SCRITTURA = 50_000
@@ -415,6 +416,16 @@ STRUMENTI_TINO = [
         "strict": True,
     },
     {
+        "name": "elimina_file",
+        "description": ("Cancella un file dentro vita/prodotti/ o vita/negozio/ (solo lì: per esempio prove e "
+                        "doppioni). Non cancella cartelle. Se il file era già stato pubblicato resta nella cronologia del "
+                        "repository e si può recuperare; se non era mai stato pubblicato, sparisce davvero. La "
+                        "cancellazione compare nel riepilogo che Gianluca riceve alla pubblicazione."),
+        "input_schema": {"type": "object", "properties": {"percorso": {"type": "string"}},
+                         "required": ["percorso"], "additionalProperties": False},
+        "strict": True,
+    },
+    {
         "name": "converti_in_png",
         "description": ("Converte un'immagine SVG che sta in vita/ in PNG, salvandola accanto all'originale con lo "
                         "stesso nome (es. aspetto/tino.svg -> aspetto/tino.png). larghezza in pixel tra 64 e 2048; "
@@ -523,6 +534,18 @@ class Risveglio:
             self.c.tg.invia_file(self.c.owner, f, "🤖 " + inp["didascalia"])
             self.c.log_chat("tino", f"[file inviato: {f.relative_to(VITA.resolve())}] {inp['didascalia']}", self.tipo)
             return "File inviato."
+        if nome == "elimina_file":
+            p = percorso_sicuro(inp["percorso"], scrittura=True)
+            relp = p.relative_to(VITA.resolve())
+            if not relp.parts or relp.parts[0] not in CARTELLE_CANCELLABILI or len(relp.parts) < 2:
+                raise ErroreStrumento("Puoi cancellare solo file dentro prodotti/ o negozio/.")
+            if not p.is_file():
+                raise ErroreStrumento(f"{relp} non è un file (le cartelle non si cancellano).")
+            pubblicato = not self.c.git("ls-files", "--error-unmatch", str(p)).returncode
+            p.unlink()
+            log.info("Tino ha cancellato vita/%s", relp)
+            return f"Cancellato {relp}. " + ("Resta nella cronologia del repository." if pubblicato
+                                              else "Non era mai stato pubblicato: non è recuperabile.")
         if nome == "converti_in_png":
             sorgente = percorso_sicuro(inp["percorso"], scrittura=False)
             if sorgente.suffix.lower() != ".svg" or not sorgente.is_file():
