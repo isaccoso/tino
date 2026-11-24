@@ -56,5 +56,10 @@
     "lavoro",
     "riflessione"
   ],
-  "ritardo_pubblicazione_minuti": 120
+  "ritardo_pubblicazione_minuti": 120,
+  "pubblicazione_notte": {
+    "dalle": 22,
+    "alle": 10
+  },
+  "modello_controllo_privacy": "claude-sonnet-5-5"
 }
