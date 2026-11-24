@@ -2,25 +2,28 @@
 
 > Il mio banco di lavoro. Ogni sessione riparte da qui.
 
-## Piccolo n.1: icone SVG → da ripensare
-- Stato (23/11 sera): 5 icone in vita/icone/ (SVG + PNG). Caffè e carrello ok per Gianluca; forbici, fiore e chiave ridisegnate alle 14:00, non ancora viste da lui. Account Gumroad NON aperto.
-- Il problema: Lucide, Tabler e Phosphor sono gratis e ottimi. Icone generiche = nessun motivo per pagare. L'ho ammesso.
-- Limite: non posso vedere i PNG. Il controllo visivo lo fa Gianluca.
+## Prodotto 1: Kit cartelli per piccoli negozi → proposta inviata (24/11 pomeriggio)
+- Cosa: 24 cartelli A4 in italiano, PDF con campi compilabili, 2 grafiche (chiara/notte), cartellini prezzo 8 per foglio, guida + licenza. Prezzo proposto 7 €.
+- Dove: negozio/kit-cartelli/scheda-prodotto.md (titolo, prezzo, descrizione IT/EN, confronto), negozio/copertina.svg/.png, prodotti/kit-cartelli-negozio.zip, prodotti/anteprime/.
+- Generatore: il codice è nella sandbox (/tmp/w), NON salvato in vita/. Se serve rigenerare: riscrivere. (Lezione: salvare il generatore in vita/negozio/ la prossima volta, è testo.)
+- Concorrenza trovata: sitolocale.it (generatori gratis, stessi cartelli), Etsy 1-9 $ (modelli Canva). Vantaggio: pacchetto offline compilabile, no account. Debole.
+- DA FARE appena i file sono in prodotti/ (dovrebbero arrivare a fine sessione 24/11 14:xx): guardare con guarda_immagine anteprime/tutti-chiaro.png, tutti-notte.png, esempio-*.jpg e correggere. Poi, se Gianluca dice sì: aspettare caricamento.
+- Test mancante: campi compilabili in un lettore vero (Gianluca).
+- Problema vero: traffico. Senza pubblico nessuno lo vede. Prossima proposta, dopo la risposta: come farlo trovare (pagina sul sito di Gianluca, descrizione SEO italiana).
 
-## PROSSIMO PASSO (sessione di domattina)
-1. Ricerca web breve (2-3 query, non di più) su due strade, con numeri:
-   (a) nicchia per mestiere: esistono già pacchetti a pagamento di icone/grafiche per panificio, parrucchiere, officina? A che prezzo? Si vendono (recensioni, vendite visibili su Etsy/Gumroad/Creative Market)?
-   (b) prodotto diverso: template (menu stampabili, listini, cartelli per negozi, planner) dove le mie icone diventano un pezzo e non il prodotto.
-2. Scegliere UNA strada con un argomento onesto contro i set gratuiti. Se nessuna regge, scartare e cercare un'idea nuova.
-3. Scrivere UNA proposta in proposte.md: cosa, perché paga qualcuno, costo, rischi.
-- Costo previsto: ~0,10 $ API.
+## Negozio online: Gumroad attivo
+- gianlucaiunco.gumroad.com (Lemon Squeezy non accettava iscrizioni). 10% + 0,50 $ + carta (2,9% + 0,30 $). Profilo curato da Gianluca.
 
-## Scartate / in panchina
-- Icone generiche "piccole attività": battute dai set gratuiti.
-- Haiku del giorno: ricavo ~0.
-- Mini-tool web statici: dominio e SEO lenta.
-- Newsletter di nicchia: serve pubblico.
-- Micro-SaaS con AI: server e clienti, troppo per ora.
+## Mascotte
+- Gianluca: l'aspetto è mio, dentro vita/ decido io (file aspetto/tino.svg, il sito lo legge da lì). Voglio antennina più spessa e qualche variante (contenta, pensierosa, al lavoro). Non ancora fatto. Priorità bassa rispetto al prodotto.
+
+## Icone SVG: archiviato
+- 5 icone in vita/icone/. Battute dai set gratuiti (Lucide, Tabler, Phosphor). Riusabili come pezzi dentro altri prodotti.
+
+## Idee in panchina
+- Altri pacchetti stampabili per mestiere (parrucchiere, officina, bar) per ampliare: solo se il kit 1 vende.
+- Cartelli per eventi/mercatini (prezzi, scan to pay): su Etsy è affollato.
+- Scartate: icone generiche, haiku del giorno, mini-tool statici, newsletter, micro-SaaS.
 
 ## Grosso (privato fino al go live)
 Ancora da scegliere, dopo il primo piccolo.
