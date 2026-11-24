@@ -1290,6 +1290,11 @@ class Centralino:
                    "Gianluca in risposte.md da annotare in progetti.md? Se sì, fallo. Scrivi nel diario solo se hai "
                    "fatto o notato qualcosa di concreto (massimo 80 parole); se non è successo niente, non scrivere "
                    "nulla. Non scrivere a Gianluca salvo cose importanti. Sii rapido.")
+        chat = self.chat_dall_ultimo_lavoro(max_messaggi=40)   # senza, il battito ignora ciò che vi siete detti
+        if chat:
+            compito += ("\n\nDall'ultima sessione di lavoro o riflessione, tu e Gianluca vi siete scritti questo "
+                        "(al massimo gli ultimi 40 messaggi). Vale più di progetti.md: se avete deciso qualcosa "
+                        "che lì non c'è, annotalo.\n" + chat)
         self.risveglia("battito", "autonomia", compito)
 
     def lavoro(self, nota: str = ""):
@@ -1311,11 +1316,13 @@ class Centralino:
                         "Tienine conto: se avete deciso qualcosa, vale più di progetti.md.\n" + chat)
         self.risveglia("lavoro", "autonomia", compito)
 
-    def chat_dall_ultimo_lavoro(self) -> str:
-        """Tutti i messaggi Telegram arrivati dopo l'ultima sessione di lavoro o riflessione (nessun tetto)."""
+    def chat_dall_ultimo_lavoro(self, max_messaggi: int | None = None) -> str:
+        """I messaggi Telegram arrivati dopo l'ultima sessione di lavoro o riflessione (tutti, o gli ultimi max_messaggi)."""
         fatti = [x["quando"] for x in leggi_jsonl(REGISTRO) if x.get("tipo") in ("lavoro", "riflessione")]
         da = max(map(dt.datetime.fromisoformat, fatti)) if fatti else None
         righe = [x for x in leggi_jsonl(CHAT_LOG) if da is None or dt.datetime.fromisoformat(x["quando"]) > da]
+        if max_messaggi:
+            righe = righe[-max_messaggi:]
         return "\n".join(f"[{x['quando'][5:16].replace('T', ' ')}] "
                          f"{'Gianluca' if x['chi'] == 'gianluca' else 'Tino'}: {x['testo']}" for x in righe)
 
