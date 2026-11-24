@@ -1171,14 +1171,36 @@ class Centralino:
             # Le proposte all'architetto arrivano sempre anche a Gianluca: non sono un canale nascosto.
             dopo = proposte.read_text() if proposte.exists() else ""
             if dopo != prima:
-                nuovo = dopo[len(prima):] if dopo.startswith(prima) else dopo
-                nuovo = nuovo.strip()
-                pid = ora(self.cfg).strftime("%Y%m%d%H%M%S")
-                titolo = next((x.lstrip("#").strip() for x in nuovo.splitlines() if x.strip()), "(senza titolo)")
-                self.stato.setdefault("proposte", {})[pid] = titolo[:200]
-                self.salva()
-                self.tg.invia(self.owner, "📝 Nuova proposta di Tino:\n\n" + nuovo[:3500],
-                              pulsanti=[("✅ Fattibile", f"prop:si:{pid}"), ("❌ Lascia stare", f"prop:no:{pid}")])
+                self.inoltra_proposte(prima, dopo)
+
+    @staticmethod
+    def sezioni_proposte(testo: str) -> dict[str, str]:
+        """Le proposte di proposte.md, una per titolo '### ...' (il titolo è la chiave)."""
+        parti = re.split(r"(?m)^(?=### )", testo)
+        return {p.splitlines()[0].strip(): p.strip() for p in parti if p.startswith("### ")}
+
+    def inoltra_proposte(self, prima: str, dopo: str):
+        """Inoltra a Gianluca solo le proposte nuove o cambiate, una per messaggio e ognuna con i suoi pulsanti.
+        Tutto il resto che cambia nel file gli arriva comunque, come nota senza pulsanti: niente canali nascosti."""
+        vecchie, nuove = self.sezioni_proposte(prima), self.sezioni_proposte(dopo)
+        for titolo, testo in nuove.items():
+            if vecchie.get(titolo) == testo:
+                continue
+            etichetta = "📝 Nuova proposta di Tino" if titolo not in vecchie else "✏️ Proposta di Tino modificata"
+            pid = ora(self.cfg).strftime("%Y%m%d%H%M%S") + f"{len(self.stato.setdefault('proposte', {})) % 100:02d}"
+            self.stato["proposte"][pid] = titolo.lstrip("#").strip()[:200]
+            self.salva()
+            self.tg.invia(self.owner, f"{etichetta}:\n\n{testo}",
+                          pulsanti=[("✅ Fattibile", f"prop:si:{pid}"), ("❌ Lascia stare", f"prop:no:{pid}")])
+        tolte = [t.lstrip("#").strip() for t in vecchie if t not in nuove]
+        fuori = lambda t: re.split(r"(?m)^(?=### )", t)[0].strip()   # intestazione, prima della prima proposta
+        note = []
+        if tolte:
+            note.append("Proposte tolte dal file: " + "; ".join(tolte))
+        if fuori(prima) != fuori(dopo):
+            note.append("Intestazione cambiata:\n" + fuori(dopo))
+        if note:
+            self.tg.invia(self.owner, "🗂 Tino ha riordinato proposte.md.\n" + "\n".join(note))
 
     def controlla_spesa_giornaliera(self):
         """Avvisa Gianluca una volta al giorno se la spesa autonoma supera la soglia."""
