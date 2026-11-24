@@ -24,7 +24,7 @@
   "finestra_recupero_ore": 3,
   "budget_giornaliero_usd": {
     "autonomia": 4.0,
-    "gianluca": 0.3
+    "gianluca": 0.5
   },
   "max_passaggi": 15,
   "max_secondi_risveglio": 300,
