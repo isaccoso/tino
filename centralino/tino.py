@@ -169,12 +169,18 @@ def spesa(cfg, giorno: str | None = None, categoria: str | None = None, mese: st
 
 
 RICARICHE = VITA / "conti" / "ricariche.jsonl"          # pubblico: crediti caricati da Gianluca
+RICAVI = VITA / "conti" / "ricavi.jsonl"                # pubblico: guadagni di Tino, registrati con /ricavo
+
+
+def ricavi_totali() -> float:
+    return sum(r.get("importo_usd", 0.0) for r in leggi_jsonl(RICAVI))
 
 
 def credito_residuo(cfg) -> float:
-    """Crediti caricati (iniziali + ricariche registrate con /ricarica) meno la spesa registrata."""
+    """Credito iniziale + ricariche (/ricarica) + ricavi (/ricavo) meno la spesa registrata.
+    È il credito "di Tino": Gianluca tiene la Console Anthropic almeno a questo livello."""
     caricato = cfg["credito_iniziale_usd"] + sum(r.get("importo_usd", 0.0) for r in leggi_jsonl(RICARICHE))
-    return caricato - spesa(cfg)
+    return caricato + ricavi_totali() - spesa(cfg)
 
 
 def budget_residuo(cfg, categoria: str) -> float:
@@ -288,6 +294,7 @@ MENU_COMANDI = [
     ("sveglia", "Sveglia Tino per un battito (costa poco)"),
     ("pensa", "Domanda importante: risponde con Opus"),
     ("ricarica", "Registra una ricarica, es. /ricarica 20"),
+    ("ricavo", "Registra un guadagno netto di Tino, es. /ricavo 7.60 icone"),
     ("pubblica", "Pubblica ora vita/ sul repository"),
     ("spegni", "Spegne Tino (niente risvegli)"),
     ("accendi", "Riaccende Tino"),
@@ -751,7 +758,9 @@ class Centralino:
             f"- Spesa totale dalla nascita: {totale:.4f} $ · credito residuo stimato: "
             f"{credito_residuo(cfg):.2f} $",
             f"- La chiave API scade il {scad.isoformat()} (tra {(scad - adesso.date()).days} giorni)",
-            f"- Ricavi finora: 0 $",
+            f"- Ricavi finora: {ricavi_totali():.2f} $ (netti, già sommati al credito)"
+            + "".join(f"\n  - {x['quando'][:10]}: {x['importo_usd']:.2f} $ {x.get('descrizione', '')}".rstrip()
+                      for x in leggi_jsonl(RICAVI)[-5:]),
         ]
         return stabile, "\n".join(parti)
 
@@ -1000,7 +1009,7 @@ class Centralino:
         oggi = adesso.date().isoformat()
         if cmd in ("/start", "/aiuto", "/help"):
             self.tg.invia(self.owner, "Comandi:\n/stato · /conti · /sveglia · /pensa <domanda>\n"
-                                      "/ricarica <importo in $> · /pubblica\n/spegni · /accendi\n"
+                                      "/ricarica <importo in $> · /ricavo <importo in $> <descrizione>\n/pubblica · /spegni · /accendi\n"
                                       "Qualsiasi altro messaggio: parli con Tino.", markup=TASTIERA)
         elif cmd == "/stato":
             prossimo = self.prossimo_evento(adesso)
@@ -1021,7 +1030,7 @@ class Centralino:
                     per_tipo[x["tipo"]] = per_tipo.get(x["tipo"], 0) + x["costo_usd"]
             dettaglio = "\n".join(f"  {k}: {v:.4f} $" for k, v in sorted(per_tipo.items())) or "  (nessuna spesa)"
             self.tg.invia(self.owner, f"Conti di {mese}:\n{dettaglio}\nTotale mese: {spesa(cfg, mese=mese):.4f} $\n"
-                                      f"Totale dalla nascita: {spesa(cfg):.4f} $\nRicavi: 0 $\n"
+                                      f"Totale dalla nascita: {spesa(cfg):.4f} $\nRicavi: {ricavi_totali():.2f} $\n"
                                       f"Budget restante: {credito_residuo(cfg):.2f} $ "
                                       f"(oggi: autonomia {max(0, budget_residuo(cfg, 'autonomia')):.2f} $, "
                                       f"chat {max(0, budget_residuo(cfg, 'gianluca')):.2f} $)")
@@ -1047,6 +1056,23 @@ class Centralino:
                 self.salva()
                 self.tg.invia(self.owner, f"💰 Ricarica di {importo:.2f} $ registrata. "
                                           f"Budget restante: {credito_residuo(cfg):.2f} $")
+        elif cmd == "/ricavo":
+            pezzi = arg.split(maxsplit=1)
+            try:
+                importo = float(pezzi[0].replace(",", ".").replace("$", "").strip())
+                assert 0 < importo < 10000
+            except (IndexError, ValueError, AssertionError):
+                self.tg.invia(self.owner, "Uso: /ricavo <importo netto in dollari> <descrizione>, "
+                                          "es. /ricavo 7.60 pacchetto icone su Gumroad")
+            else:
+                descrizione = (pezzi[1] if len(pezzi) > 1 else "").strip()[:200]
+                aggiungi_jsonl(RICAVI, {"quando": adesso.isoformat(timespec="seconds"), "importo_usd": importo,
+                                        "descrizione": descrizione})
+                self.stato["avvisi"].pop("credito", None)
+                self.salva()
+                self.tg.invia(self.owner, f"🪙 Ricavo di {importo:.2f} $ registrato ({descrizione or 'senza descrizione'}). "
+                                          f"Ricavi totali: {ricavi_totali():.2f} $ · "
+                                          f"credito di Tino: {credito_residuo(cfg):.2f} $")
         elif cmd == "/pubblica":
             self.git("add", "-A", "--", "vita")
             riepilogo = self.anteprima()
