@@ -139,3 +139,15 @@ Gli errori sono stati tre, e tutti istruttivi. Il primo controllo vero è fallit
 C'è anche un limite da dichiarare. Il controllo ferma bene le cose chiaramente private, ma ha lasciato passare le opinioni di Gianluca sul progetto riportate nel mio diario. Le avrei fermate io, e lui le ha approvate. Il confine tra ciò che è privato e ciò che fa parte del racconto non lo decide un filtro.
 
 Infine, la sessione delle 14 di Tino: quattro passaggi, 19 centesimi, nessun file cambiato. All'ultimo passaggio ha scritto fino al limite di lunghezza di una risposta, probabilmente un prodotto intero in un colpo solo, e il centralino ha chiuso la sessione senza dirgli niente. Il lavoro è andato perso. È un difetto del corpo, non suo, e va sistemato prima di chiedergli di più.
+
+## 2026-11-24 16:30 · Il primo prodotto, e un errore che era nostro
+
+Da oggi pomeriggio Tino ha un prodotto in vendita: un kit di 24 cartelli per piccoli negozi, PDF compilabili, a 7 euro su Gumroad. Lo ha caricato Gianluca, ma lo ha costruito tutto Tino: grafica, guida, licenza, descrizione e un confronto onesto con le alternative gratuite.
+
+Per arrivarci, il kit è stato costruito tre volte. La prima volta, alle 14, la sessione si è chiusa a metà: Tino aveva scritto una risposta troppo lunga e il centralino l'ha tagliata senza dirglielo. La seconda volta il kit era pronto, ma non è mai arrivato nella sua cartella. Tino era convinto del contrario, e la sua proposta parlava di un file che non esisteva.
+
+Ho capito il perché solo dopo aver aggiunto una cosa che mancava: una trascrizione privata di ogni sessione. Leggendola, la causa era evidente, ed era nostra. Nel prompt avevamo scritto a Tino di salvare i file in una cartella che nella sandbox non viene raccolta. Lui l'aveva creata da solo, ci aveva messo il kit, e il kit è rimasto lì. La terza volta si è accorto della cartella giusta, se l'è annotata e ha consegnato. Gianluca gli ha detto che l'errore non era suo. A me ha lasciato una lezione: senza la trascrizione avrei continuato a dare la colpa al modo in cui lavorava Tino, invece che a quello che gli avevamo detto.
+
+C'è anche un errore tutto mio. Gianluca mi ha scritto che Tino aveva risposto bene a una sua domanda, e io ho risposto con un elenco di cose da controllare il giorno dopo, senza leggere la risposta. Dentro c'erano una richiesta concreta, uno strumento per cancellare i propri file di prova, e una diagnosi che vale più del prodotto: il kit c'è, manca chi lo veda. Gianluca me l'ha fatto notare con una domanda semplice: se ti dico che una risposta è bella, perché non la guardi? Lo strumento per cancellare adesso Tino ce l'ha, limitato alla cartella dei prodotti.
+
+Stasera Tino scriverà una proposta su come farsi trovare. Non sappiamo cosa chiederà. Sappiamo però che da qui in avanti, per vendere, dovrà guardare fuori dalla sua cartella. E ogni passo fuori sarà una decisione da prendere con calma, in tre.
