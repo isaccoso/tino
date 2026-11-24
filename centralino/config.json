@@ -65,5 +65,6 @@
     "dalle": 22,
     "alle": 10
   },
-  "modello_controllo_privacy": "claude-sonnet-5-5"
+  "modello_controllo_privacy": "claude-sonnet-5-5",
+  "gumroad_controllo_minuti": 60
 }

@@ -857,6 +857,7 @@ class Centralino:
         self.push_fallito = False   # per avvisare Gianluca una volta sola se GitHub non risponde
         self.controllo_fallito = False
         self.prossimo_controllo = None
+        self.ultimo_gumroad = None
         self.attesa_pensa = False   # dopo il pulsante "Pensa", il messaggio successivo va a Opus
 
     def salva(self):
@@ -1463,9 +1464,54 @@ class Centralino:
                 {"riflessione": self.riflessione, "lavoro": self.lavoro}.get(tipo, self.battito)()
         self.controlla_avvisi(adesso)
         try:
+            self.controlla_gumroad(adesso)
+        except Exception:
+            log.exception("Controllo Gumroad non riuscito")
+        try:
             self.spingi()
         except Exception:
             log.exception("Uscita su GitHub non riuscita")
+
+    def controlla_gumroad(self, adesso: dt.datetime):
+        """Ogni ora guarda le vendite su Gumroad (token di sola lettura usato solo per leggere) e avvisa Gianluca
+        di quelle nuove. Non registra il ricavo da sé: finché non abbiamo visto una vendita vera non sappiamo se
+        l'API dà il netto, e i conti di Tino sono in dollari. Tino non vede il token né l'account."""
+        token = self.segreti.get("GUMROAD_ACCESS_TOKEN", "").strip()
+        minuti = self.cfg.get("gumroad_controllo_minuti")
+        if not token or not minuti:
+            return
+        if self.ultimo_gumroad and adesso - self.ultimo_gumroad < dt.timedelta(minutes=minuti):
+            return
+        self.ultimo_gumroad = adesso
+        dopo = (adesso - dt.timedelta(days=30)).date().isoformat()
+        url = "https://api.gumroad.com/v2/sales?" + urllib.parse.urlencode({"access_token": token, "after": dopo})
+        try:
+            with urllib.request.urlopen(url, timeout=30) as r:
+                dati = json.load(r)
+        except Exception as e:   # mai il token nel log: l'URL lo contiene
+            log.warning("Gumroad non risponde: %s", type(e).__name__)
+            return
+        if not dati.get("success"):
+            log.warning("Gumroad: risposta senza successo (%s)", str(dati.get("message", ""))[:100])
+            return
+        viste = self.stato.setdefault("gumroad_vendite_viste", [])
+        for v in reversed(dati.get("sales", [])):
+            vid = str(v.get("id", ""))
+            if not vid or vid in viste:
+                continue
+            viste.append(vid)
+            self.salva()
+            # Niente dati dell'acquirente (email, nome): servono solo prodotto e importi.
+            campi = {k: v.get(k) for k in ("product_name", "formatted_display_price", "price", "currency_symbol",
+                                           "gumroad_fee", "discover_fee_charged", "refunded", "created_at")
+                     if k in v}
+            log.info("Nuova vendita su Gumroad: %s", json.dumps(campi, ensure_ascii=False))
+            self.tg.invia(self.owner, "🛒 Nuova vendita su Gumroad!\n"
+                          f"{v.get('product_name', '?')} · {v.get('formatted_display_price', '?')}\n\n"
+                          "Dati dell'API (per l'architetto): " + json.dumps(campi, ensure_ascii=False) + "\n\n"
+                          "Quando vedi il netto nel pannello di Gumroad, registralo per Tino con "
+                          "/ricavo <importo netto in $> <descrizione>.")
+        self.stato["gumroad_vendite_viste"] = viste[-500:]
 
     def controlla_avvisi(self, adesso: dt.datetime):
         cfg, oggi = self.cfg, adesso.date().isoformat()
