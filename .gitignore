@@ -13,6 +13,7 @@ centralino/STOP
 centralino/PUSH_SOSPESO
 centralino/annullati/
 centralino/trascrizioni/
+centralino/controlli_privacy.jsonl
 centralino/*.log
 centralino/*.tmp
 __pycache__/

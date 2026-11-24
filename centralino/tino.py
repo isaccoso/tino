@@ -205,6 +205,7 @@ ESTENSIONI_PRODOTTI = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg",
                        ".txt", ".md", ".json", ".html", ".py", ".js", ".zip", ".epub"}
 MAX_BYTE_PRODOTTO = 20_000_000
 TRASCRIZIONI = CENTRALINO / "trascrizioni"              # privato: ogni sessione per intero, fuori dal repository
+CONTROLLI_PRIVACY = CENTRALINO / "controlli_privacy.jsonl"   # privato: esito completo di ogni controllo privacy
 RX_PRODOTTO = re.compile(r"prodotti/([\w./-]+?\.(?:" + "|".join(e[1:] for e in sorted(ESTENSIONI_PRODOTTI)) + r"))\b")
 
 
@@ -1076,6 +1077,9 @@ class Centralino:
         problemi += [{"file": "?", "testo": "(parola dell'elenco privato)", "motivo": "parola vietata, controllo rigido"}
                      for _ in trovate[:1]]
         log.info("Controllo privacy: %d problemi (%.4f $).", len(problemi), costo)
+        with CONTROLLI_PRIVACY.open("a") as f:   # l'elenco intero: su Telegram ne arrivano al massimo 8
+            f.write(json.dumps({"quando": adesso.isoformat(timespec="seconds"), "head": head, "modello": modello,
+                                "costo_usd": round(costo, 4), "problemi": problemi}, ensure_ascii=False) + "\n")
         if not problemi:
             self.stato["controllo_ok"] = head
             self.salva()
@@ -1089,6 +1093,8 @@ class Centralino:
         pulsanti = [("🚀 Pubblica comunque", "pubblica:ora")]
         if primo_tino:
             pulsanti.append(("↩️ Annulla tutto", f"annulla:{primo_tino}"))
+        if len(problemi) > 8:
+            righe += f"\n…e altri {len(problemi) - 8}: elenco completo in centralino/controlli_privacy.jsonl (chiedi all'architetto)."
         self.tg.invia(self.owner, "🔒 Il controllo privacy ha fermato la pubblicazione:\n" + righe +
                       "\n\nNiente esce finché non decidi. «Annulla tutto» toglie tutte le pubblicazioni di Tino "
                       "in attesa; per togliere solo una frase chiedi all'architetto.", pulsanti=pulsanti)
