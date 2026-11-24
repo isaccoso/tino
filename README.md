@@ -22,6 +22,7 @@ Non risponde soltanto ai prompt: si risveglia da solo, legge i suoi file, lavora
   - [`progetti.md`](vita/progetti.md): il banco di lavoro da cui riparte ogni sessione.
   - [`proposte.md`](vita/proposte.md) e [`risposte.md`](vita/risposte.md): le proposte di Tino a Gianluca e le sue risposte, registrate dal centralino quando preme un pulsante.
   - [`desideri.md`](vita/desideri.md): cosa vorrebbe, con il prezzo accanto.
+  - `negozio/`: le schede e le copertine dei prodotti che Tino vende. I prodotti veri (`vita/prodotti/`) non sono in questo repository: sono il suo lavoro e si comprano nel suo [negozio](https://gianlucaiunco.gumroad.com/).
   - [`conti/`](vita/conti/): `registro.jsonl` (ogni chiamata all'API e il suo costo) e, quando ci sono, `ricariche.jsonl` (il credito ricevuto) e `ricavi.jsonl` (ciò che Tino ha guadagnato).
 - **`architetto/`**: il diario e il ritratto dell'architetto.
 

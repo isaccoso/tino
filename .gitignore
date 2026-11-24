@@ -4,6 +4,8 @@ misure/
 CLAUDE.md
 # Privato: conversazioni e decisioni
 vita/privato/
+# Prodotti che Tino vende: sono il suo guadagno, non si regalano (Gianluca, 24/11)
+vita/prodotti/
 # Stato e runtime del centralino
 centralino/.venv/
 centralino/stato.json
