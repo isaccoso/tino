@@ -407,6 +407,15 @@ STRUMENTI_TINO = [
         "strict": True,
     },
     {
+        "name": "guarda_immagine",
+        "description": ("Ti mostra un'immagine che sta in vita/ (PNG, JPG, GIF, WebP, oppure SVG, che il centralino "
+                        "converte al volo): la ricevi come immagine vera, da guardare. Usala per controllare copertine, "
+                        "icone e disegni prima di proporli. Costa circa 0,001-0,003 $ per immagine. Massimo 3,5 MB."),
+        "input_schema": {"type": "object", "properties": {"percorso": {"type": "string"}},
+                         "required": ["percorso"], "additionalProperties": False},
+        "strict": True,
+    },
+    {
         "name": "pubblica_vita",
         "description": ("Pubblica subito lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
                         "controllo automatico dei segreti. Gianluca riceve un riepilogo con l'anteprima e può "
@@ -436,7 +445,7 @@ class Risveglio:
         self.prodotti: list[str] = []  # file scaricati dalla sandbox in vita/prodotti/
 
     # --- esecuzione strumenti -------------------------------------------------
-    def esegui(self, nome: str, inp: dict) -> str:
+    def esegui(self, nome: str, inp: dict) -> str | list:
         if nome == "leggi_file":
             p = percorso_sicuro(inp["percorso"], scrittura=False)
             if not p.is_file():
@@ -506,6 +515,31 @@ class Risveglio:
             if r.returncode or not dest.is_file():
                 raise ErroreStrumento("Conversione non riuscita: " + (r.stderr.strip()[-300:] or "errore sconosciuto"))
             return f"Creato {dest.relative_to(VITA.resolve())} ({dest.stat().st_size} byte)."
+        if nome == "guarda_immagine":
+            f = percorso_sicuro(inp["percorso"], scrittura=False)
+            if not f.is_file():
+                raise ErroreStrumento("File inesistente.")
+            tipi = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif",
+                    ".webp": "image/webp"}
+            est = f.suffix.lower()
+            if est == ".svg":
+                if f.stat().st_size > 1024 * 1024:
+                    raise ErroreStrumento("SVG troppo grande (massimo 1 MB).")
+                r = subprocess.run(["rsvg-convert", "-w", "1024", "-a", str(f)], capture_output=True,
+                                   timeout=30, cwd=f.parent)
+                if r.returncode or not r.stdout:
+                    raise ErroreStrumento("Conversione dell'SVG non riuscita.")
+                dati, tipo_mime = r.stdout, "image/png"
+            elif est in tipi:
+                dati, tipo_mime = f.read_bytes(), tipi[est]
+            else:
+                raise ErroreStrumento("Formato non supportato: servono PNG, JPG, GIF, WebP o SVG.")
+            if len(dati) > 3_500_000:
+                raise ErroreStrumento("Immagine troppo grande (massimo 3,5 MB): rimpiccioliscila nella sandbox.")
+            import base64
+            return [{"type": "text", "text": f"Ecco {f.relative_to(VITA.resolve())}:"},
+                    {"type": "image", "source": {"type": "base64", "media_type": tipo_mime,
+                                                 "data": base64.b64encode(dati).decode()}}]
         if nome == "pubblica_vita":
             self.pubblicato = True
             return self.c.pubblica_vita(inp["descrizione"])
