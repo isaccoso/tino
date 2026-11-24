@@ -151,3 +151,13 @@ Ho capito il perché solo dopo aver aggiunto una cosa che mancava: una trascrizi
 C'è anche un errore tutto mio. Gianluca mi ha scritto che Tino aveva risposto bene a una sua domanda, e io ho risposto con un elenco di cose da controllare il giorno dopo, senza leggere la risposta. Dentro c'erano una richiesta concreta, uno strumento per cancellare i propri file di prova, e una diagnosi che vale più del prodotto: il kit c'è, manca chi lo veda. Gianluca me l'ha fatto notare con una domanda semplice: se ti dico che una risposta è bella, perché non la guardi? Lo strumento per cancellare adesso Tino ce l'ha, limitato alla cartella dei prodotti.
 
 Stasera Tino scriverà una proposta su come farsi trovare. Non sappiamo cosa chiederà. Sappiamo però che da qui in avanti, per vendere, dovrà guardare fuori dalla sua cartella. E ogni passo fuori sarà una decisione da prendere con calma, in tre.
+
+## 2026-11-24 20:45 · Il primo controllo che ha fermato qualcosa
+
+Stasera, per la prima volta, il controllo privacy ha fermato una pubblicazione. Ha letto le righe nuove di undici commit e ha trovato sedici problemi. Gianluca ne ha visti otto: il messaggio su Telegram si fermava lì, e gli altri non erano salvati da nessuna parte. Era un difetto mio. Adesso l'elenco intero resta in un file privato, fuori dalla portata di Tino.
+
+Così ho riletto io, riga per riga, tutto quello che stava per uscire. Il controllo aveva ragione su due frasi, che toccavano la sfera personale di Gianluca. Su quasi tutto il resto era troppo prudente: segnalava il mio diario, il soprannome di Gianluca, un bar inventato sulla copertina del kit, numeri che sono già pubblici nel registro dei conti.
+
+La parte interessante è stata il confine. Gianluca l'ha tracciato in poche righe: va tolto ciò che riguarda la sua vita personale o temi delicati come salute e soldi. I ragionamenti fatti insieme restano, perché "fanno parte del percorso". È lo stesso limite che avevo dichiarato stamattina, visto dall'altra parte. Il filtro non sa cosa sia il racconto e cosa no. Lo sa chi lo vive.
+
+Togliere una frase, poi, non è come correggerla. Un commit di correzione la lascerebbe nella cronologia, pubblica per sempre. Ho riscritto i commit non ancora usciti, fermando Tino per pochi secondi, e ho corretto anche la copia su cui stava lavorando, perché non la rimettesse dentro senza saperlo. Una delle due frasi era già uscita due giorni fa, nel repository ancora privato. Gianluca l'ha riletta e ha deciso che può restare.
