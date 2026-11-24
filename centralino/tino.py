@@ -41,6 +41,7 @@ REGISTRO = VITA / "conti" / "registro.jsonl"            # pubblico: ogni chiamat
 CHAT_LOG = VITA / "privato" / "telegram.jsonl"          # privato: mai pubblicato
 STATO = CENTRALINO / "stato.json"                       # stato del centralino (fuori da vita/)
 STOP = CENTRALINO / "STOP"                              # se esiste, Tino è spento
+PUSH_SOSPESO = CENTRALINO / "PUSH_SOSPESO"              # se esiste, niente esce su GitHub da solo (annullamento fallito)
 CONFIG = CENTRALINO / "config.json"
 SECRETS = Path.home() / ".config" / "tino" / "secrets.env"
 
@@ -417,10 +418,11 @@ STRUMENTI_TINO = [
     },
     {
         "name": "pubblica_vita",
-        "description": ("Pubblica subito lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
-                        "controllo automatico dei segreti. Gianluca riceve un riepilogo con l'anteprima e può "
-                        "annullare. La descrizione diventa il messaggio del commit: scrivila chiara e breve, "
-                        "dicendo cosa è cambiato."),
+        "description": ("Pubblica lo stato attuale di vita/ sul repository GitHub (esclusa privato/), dopo un "
+                        "controllo automatico dei segreti. Il commit si registra subito, ma esce su GitHub solo "
+                        "dopo un ritardo: nel frattempo Gianluca riceve un riepilogo con l'anteprima e può "
+                        "annullare, e in quel caso non esce mai. La descrizione diventa il messaggio del commit: "
+                        "scrivila chiara e breve, dicendo cosa è cambiato."),
         "input_schema": {"type": "object", "properties": {"descrizione": {"type": "string"}},
                          "required": ["descrizione"], "additionalProperties": False},
         "strict": True,
@@ -735,6 +737,7 @@ class Centralino:
         self.stato.setdefault("richieste", {})
         self.stato.setdefault("ignorati", 0)
         self.stato.setdefault("avvisi", {})
+        self.push_fallito = False   # per avvisare Gianluca una volta sola se GitHub non risponde
         self.attesa_pensa = False   # dopo il pulsante "Pensa", il messaggio successivo va a Opus
 
     def salva(self):
@@ -830,33 +833,112 @@ class Centralino:
         return "\n\n".join(parti)
 
     def pubblica_vita(self, descrizione: str) -> str:
-        """Pubblicazione automatica di vita/: Gianluca riceve il riepilogo e può annullare."""
+        """Pubblicazione automatica di vita/: commit subito, uscita su GitHub dopo il ritardo.
+        Gianluca riceve il riepilogo e, finché il commit non è uscito, può annullarlo davvero."""
         self.git("add", "-A", "--", "vita")
         if not self.git("diff", "--cached", "--quiet").returncode:
             return "Niente di nuovo da pubblicare."
         riepilogo = self.anteprima()
         esito, sha = self.pubblica(f"Tino: {descrizione[:200]}")
         if sha:
-            self.tg.invia(self.owner, f"📦 Tino ha pubblicato: {descrizione}\n\n{riepilogo}",
-                          pulsanti=[("↩️ Annulla", f"annulla:{sha}")])
-            return "Pubblicato. Gianluca ha ricevuto il riepilogo."
+            uscita = self.ora_di_uscita()
+            quando = uscita.strftime("%H:%M") if uscita else "subito"
+            self.tg.invia(self.owner, f"📦 Tino ha pubblicato: {descrizione}\n"
+                                      f"Esce su GitHub alle {quando}, se non annulli.\n\n{riepilogo}",
+                          pulsanti=[("↩️ Annulla", f"annulla:{sha}"), ("🚀 Pubblica ora", "pubblica:ora")])
+            return (f"Registrato. Esce su GitHub alle {quando}: fino ad allora Gianluca ha il riepilogo "
+                    "e può annullare.")
         self.tg.invia(self.owner, f"📦 Pubblicazione di Tino non riuscita: {esito}")
         return f"Pubblicazione non riuscita: {esito}"
+
+    # Ritardo di uscita: i commit restano in locale per `ritardo_pubblicazione_minuti` dall'ultimo commit
+    # in attesa, poi escono tutti insieme. Lo stato sta in git (origin/main..HEAD), non in stato.json:
+    # regge ai riavvii e ai processi lanciati a mano.
+    def in_attesa(self) -> list[tuple[str, int]]:
+        """Commit registrati in locale e non ancora su GitHub: (sha, ora del commit)."""
+        r = self.git("log", "--format=%H %ct", "origin/main..HEAD")
+        return [(h, int(t)) for h, t in (riga.split() for riga in r.stdout.splitlines() if riga.strip())]
+
+    def ora_di_uscita(self) -> dt.datetime | None:
+        commit = self.in_attesa()
+        if not commit:
+            return None
+        ultimo = dt.datetime.fromtimestamp(max(t for _, t in commit), ZoneInfo(self.cfg["fuso_orario"]))
+        return ultimo + dt.timedelta(minutes=self.cfg.get("ritardo_pubblicazione_minuti", 120))
+
+    def spingi(self, forza: bool = False) -> str:
+        """Porta su GitHub i commit in attesa, quando il ritardo è passato o se Gianluca lo chiede (forza)."""
+        if self.git("symbolic-ref", "-q", "--short", "HEAD").stdout.strip() != "main":
+            return "Il repository non è sul ramo main (lavori in corso?): non pubblico niente."
+        uscita = self.ora_di_uscita()
+        if uscita is None:
+            return "Niente in attesa: è già tutto su GitHub."
+        if not forza and (PUSH_SOSPESO.exists() or ora(self.cfg) < uscita):
+            return ""
+        p = self.git("push", "-q", "origin", "HEAD:main")
+        if p.returncode:
+            if not self.push_fallito:
+                self.push_fallito = True
+                self.tg.invia(self.owner, "⚠️ Uscita su GitHub non riuscita, riprovo da solo: " + p.stderr[-300:])
+            return "Push non riuscito: " + p.stderr[-300:]
+        self.push_fallito = False
+        PUSH_SOSPESO.unlink(missing_ok=True)
+        log.info("Commit in attesa pubblicati su GitHub%s.", " (su richiesta di Gianluca)" if forza else "")
+        return "🚀 Pubblicato su GitHub."
 
     def annulla_pubblicazione(self, sha: str) -> str:
         if not re.fullmatch(r"[0-9a-f]{7,40}", sha):
             return "Commit non valido."
+        if self.git("merge-base", "--is-ancestor", sha, "origin/main").returncode == 0:
+            return self.annulla_con_revert(sha)
+        if self.git("merge-base", "--is-ancestor", sha, "HEAD").returncode:
+            return "Questa pubblicazione non c'è più (già annullata?)."
+        # Ancora solo in locale: si torna a prima del commit, così su GitHub non arriva mai. Le pubblicazioni
+        # successive di Tino lo contengono (il diario cresce in fondo), quindi vanno via anche loro; i commit
+        # dell'architetto si rimettono sopra. Tutto ciò che si toglie resta in una patch privata.
+        def sospendi(motivo: str) -> str:
+            PUSH_SOSPESO.write_text(ora(self.cfg).isoformat())
+            return f"⚠️ {motivo} Per sicurezza ho sospeso l'uscita su GitHub: serve l'architetto (o premi /pubblica)."
+        if self.git("status", "--porcelain", "--", ".", ":!vita").stdout.strip():
+            return sospendi("Ci sono modifiche in corso fuori da vita/ (lavori dell'architetto): non tocco niente.")
+        bersaglio = self.git("rev-parse", sha).stdout.strip()
+        dopo = [riga.split() for riga in self.git("log", "--reverse", "--format=%H %ae",
+                                                    f"{bersaglio}..HEAD").stdout.splitlines()]
+        tolti = 1 + sum(1 for _, email in dopo if email == self.cfg["git_email"])
+        da_tenere = [h for h, email in dopo if email != self.cfg["git_email"]]
+        cartella = CENTRALINO / "annullati"
+        cartella.mkdir(exist_ok=True)
+        patch = cartella / f"{ora(self.cfg).strftime('%Y%m%d-%H%M%S')}-{bersaglio[:7]}.patch"
+        patch.write_text(self.git("diff", f"{bersaglio}^", "--", "vita").stdout)   # commit + modifiche non registrate
+        self.git("reset", "-q", "--hard", f"{bersaglio}^")
+        for h in da_tenere:
+            if self.git("cherry-pick", "--allow-empty", h).returncode:
+                self.git("cherry-pick", "--abort")
+                return sospendi(f"Pubblicazione tolta, ma non sono riuscito a rimettere il commit {h[:7]} "
+                                "dell'architetto.")
+        aggiungi_jsonl(VITA / "privato" / "decisioni_gianluca.jsonl",
+                       {"quando": ora(self.cfg).isoformat(timespec="seconds"),
+                        "esito": "pubblicazione annullata prima dell'uscita", "commit": sha,
+                        "pubblicazioni_tolte": tolti})
+        extra = {1: "", 2: " Insieme a questa ho tolto la pubblicazione successiva di Tino, che la conteneva."}.get(
+            tolti, f" Insieme a questa ho tolto le {tolti - 1} pubblicazioni successive di Tino, che la contenevano.")
+        return ("↩️ Annullata prima di uscire: su GitHub non arriverà mai. I file di Tino sono tornati com'erano "
+                f"prima.{extra} Copia di ciò che è stato tolto: centralino/annullati/{patch.name}")
+
+    def annulla_con_revert(self, sha: str) -> str:
+        """Il commit è già su GitHub: si può solo aggiungere una correzione, l'originale resta nella cronologia."""
         r = self.git("revert", "--no-edit", sha)
         if r.returncode:
             self.git("revert", "--abort")
             return "Annullamento non riuscito: " + r.stderr[-300:]
-        p = self.git("push", "-q", "origin", "HEAD:main")
-        if p.returncode:
-            return "Annullato in locale, ma push fallito: " + p.stderr[-300:]
         aggiungi_jsonl(VITA / "privato" / "decisioni_gianluca.jsonl",
-                       {"quando": ora(self.cfg).isoformat(timespec="seconds"), "esito": "pubblicazione annullata",
-                        "commit": sha})
-        return "↩️ Pubblicazione annullata (i file sono tornati com'erano prima)."
+                       {"quando": ora(self.cfg).isoformat(timespec="seconds"),
+                        "esito": "pubblicazione annullata dopo l'uscita (revert)", "commit": sha})
+        nota = "↩️ Era già su GitHub: ho aggiunto una correzione, ma l'originale resta nella cronologia."
+        if len(self.in_attesa()) == 1:   # c'è solo la correzione: esce subito
+            return nota + " " + self.spingi(forza=True)
+        uscita = self.ora_di_uscita()
+        return nota + f" La correzione esce alle {uscita.strftime('%H:%M')} con il resto (o premi /pubblica)."
 
     def controlla_segreti(self) -> list[str]:
         diff = subprocess.run(["git", "diff", "--cached"], cwd=BASE, capture_output=True, text=True).stdout
@@ -872,7 +954,7 @@ class Centralino:
         return problemi
 
     def pubblica(self, messaggio: str) -> tuple[str, str | None]:
-        """Committa e pubblica ciò che è in stage (solo vita/). Ritorna (esito, sha o None)."""
+        """Committa ciò che è in stage (solo vita/); esce su GitHub con spingi(). Ritorna (esito, sha o None)."""
         git = self.git
         git("add", "-A", "--", "vita")
         if not git("diff", "--cached", "--quiet").returncode:
@@ -885,10 +967,7 @@ class Centralino:
         if c.returncode:
             return "Commit fallito: " + c.stderr[-300:], None
         sha = git("rev-parse", "--short", "HEAD").stdout.strip()
-        p = git("push", "-q", "origin", "HEAD:main")
-        if p.returncode:
-            return "Commit fatto, ma push fallito: " + p.stderr[-300:], None
-        return "✅ Pubblicato.", sha
+        return "✅ Registrato.", sha
 
     # --- risvegli -------------------------------------------------------------
     def risveglia(self, tipo: str, categoria: str, compito: str) -> str:
@@ -1111,7 +1190,8 @@ class Centralino:
             self.git("add", "-A", "--", "vita")
             riepilogo = self.anteprima()
             esito, sha = self.pubblica("Pubblicazione richiesta da Gianluca via Telegram.")
-            self.tg.invia(self.owner, esito + ("\n\n" + riepilogo if sha else ""))
+            # Gianluca decide lui: esce subito, insieme a ciò che era in attesa.
+            self.tg.invia(self.owner, esito + " " + self.spingi(forza=True) + ("\n\n" + riepilogo if sha else ""))
         elif cmd == "/spegni":
             STOP.write_text(adesso.isoformat())
             self.tg.invia(self.owner, "💤 Tino è spento. Nessun risveglio finché non scrivi /accendi.")
@@ -1151,6 +1231,10 @@ class Centralino:
                     continue
                 {"riflessione": self.riflessione, "lavoro": self.lavoro}.get(tipo, self.battito)()
         self.controlla_avvisi(adesso)
+        try:
+            self.spingi()
+        except Exception:
+            log.exception("Uscita su GitHub non riuscita")
 
     def controlla_avvisi(self, adesso: dt.datetime):
         cfg, oggi = self.cfg, adesso.date().isoformat()
@@ -1193,6 +1277,8 @@ class Centralino:
             m = cb.get("message", {})
             if dato.startswith("annulla:"):
                 nota = self.annulla_pubblicazione(dato.split(":", 1)[1])
+            elif dato == "pubblica:ora":
+                nota = self.spingi(forza=True)
             elif dato == "spegni:si":
                 STOP.write_text(ora(self.cfg).isoformat())
                 nota = "💤 Tino è spento. Premi 🟢 Accendi per riaccenderlo."

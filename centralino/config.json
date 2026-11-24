@@ -55,5 +55,6 @@
   "sandbox_tipi": [
     "lavoro",
     "riflessione"
-  ]
+  ],
+  "ritardo_pubblicazione_minuti": 120
 }
