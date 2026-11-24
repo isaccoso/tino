@@ -930,7 +930,10 @@ class Centralino:
         adesso = ora(self.cfg)
         if self.prossimo_controllo and adesso < self.prossimo_controllo:
             return False
-        diff = self.git("diff", "-U2", "origin/main", "HEAD", "--", "vita", "architetto", "README.md").stdout
+        # Solo testo leggibile: niente conti (numeri del centralino) né righe lunghissime (immagini in base64).
+        diff = self.git("diff", "-U2", "origin/main", "HEAD", "--", "vita", "architetto", "README.md",
+                        ":!vita/conti", ":!*.png", ":!*.jpg", ":!*.jpeg", ":!*.webp", ":!*.gif", ":!*.pdf").stdout
+        diff = "\n".join(r if len(r) <= 1500 else r[:200] + " […riga lunga tagliata…]" for r in diff.splitlines())
         aggiunte = [r for r in diff.splitlines() if r.startswith("+") and not r.startswith("+++")]
         if not aggiunte:   # escono solo codice o righe tolte
             self.stato["controllo_ok"] = head
@@ -949,12 +952,16 @@ class Centralino:
                 system=PROMPT_CONTROLLO, messages=[{"role": "user", "content":
                     "<parole_vietate>\n" + ("\n".join(vietate) or "(nessuna)") + "\n</parole_vietate>\n\n"
                     "<chat_private>\n" + (chat or "(nessuna)") + "\n</chat_private>\n\n"
-                    "<da_pubblicare>\n" + diff[-60_000:] + "\n</da_pubblicare>"}])
+                    "<da_pubblicare>\n" + diff[:80_000] + "\n</da_pubblicare>"}])
             costo = costo_usage(modello, risposta.usage)
             registra(self.cfg, "autonomia", "controllo", modello, risposta.usage, costo,
                      f"{adesso.strftime('%Y%m%d-%H%M%S')}-controllo")
             testo = "".join(b.text for b in risposta.content if getattr(b, "type", "") == "text").strip()
-            esito = json.loads(testo[testo.find("{"):testo.rfind("}") + 1])
+            try:
+                esito, _ = json.JSONDecoder().raw_decode(testo[testo.find("{"):])   # ignora il testo dopo il JSON
+            except ValueError:
+                log.error("Risposta del controllo non leggibile: %r", testo[:1000])
+                raise
             problemi = esito.get("problemi", [])
             if not isinstance(problemi, list):
                 raise ValueError("risposta senza elenco di problemi")
