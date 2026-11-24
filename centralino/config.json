@@ -49,7 +49,11 @@
     "lavoro": {
       "max_passaggi": 40,
       "max_secondi_risveglio": 900,
-      "max_ricerche_web_per_risveglio": 10
+      "max_ricerche_web_per_risveglio": 10,
+      "max_token_risposta": 16000
+    },
+    "riflessione": {
+      "max_token_risposta": 16000
     }
   },
   "sandbox_tipi": [

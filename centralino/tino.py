@@ -614,6 +614,7 @@ class Risveglio:
         ]}]
         inizio = time.monotonic()
         testo_finale = ""
+        troncature = 0
         log.info("Risveglio %s (modello %s, budget residuo %.3f $)", self.id, modello,
                  budget_residuo(cfg, self.categoria))
 
@@ -629,7 +630,7 @@ class Risveglio:
 
             kwargs = dict(
                 model=modello,
-                max_tokens=8000,
+                max_tokens=self.cfg.get("limiti_per_tipo", {}).get(self.tipo, {}).get("max_token_risposta", 8000),
                 # Punto di cache esplicito alla fine della parte fissa (strumenti + istruzioni + costituzione):
                 # così ogni risveglio riusa la cache del precedente invece di riscriverla.
                 system=[{"type": "text", "text": self.c.prompt_sistema(),
@@ -669,6 +670,24 @@ class Risveglio:
 
             if risposta.stop_reason == "pause_turn":
                 messages.append({"role": "assistant", "content": risposta.content})
+                continue
+            if risposta.stop_reason == "max_tokens":
+                # Risposta tagliata a metà: un blocco incompleto non si può rimandare all'API, quindi la si scarta
+                # e si dice a Tino cosa è successo, invece di chiudere la sessione in silenzio (24/11).
+                troncature += 1
+                log.warning("Risposta troncata in %s (volta %d)", self.id, troncature)
+                if troncature > 2:
+                    testo_finale = "(Mi fermo: tre risposte di fila troppo lunghe, tagliate dal limite di lunghezza.)"
+                    break
+                avviso = {"type": "text", "text": (
+                    "[Centralino] La tua ultima risposta ha superato il limite di lunghezza ed è stata tagliata: "
+                    "niente di quello che conteneva è stato eseguito o salvato. Riprendi da qui dividendo il lavoro "
+                    "in pezzi più piccoli: un file lungo scrivilo in più parti (per esempio scrivi_file per l'inizio "
+                    "e aggiungi_a_file per il resto, oppure più comandi nella sandbox).")}
+                ultimo = messages[-1]
+                if isinstance(ultimo["content"], str):
+                    ultimo["content"] = [{"type": "text", "text": ultimo["content"]}]
+                ultimo["content"] = list(ultimo["content"]) + [avviso]
                 continue
             if risposta.stop_reason != "tool_use":
                 break
@@ -1165,7 +1184,7 @@ class Centralino:
                    "nulla. Non scrivere a Gianluca salvo cose importanti. Sii rapido.")
         self.risveglia("battito", "autonomia", compito)
 
-    def lavoro(self):
+    def lavoro(self, nota: str = ""):
         compito = ("Sessione di lavoro. È il momento per far avanzare il tuo autosostentamento: l'iniziativa è tua. "
                    "Parti da progetti.md e da risposte.md. Scegli un obiettivo concreto e portalo fino in fondo, anche se "
                    "servono molti passaggi: cercare e verificare informazioni sul web, valutare un'idea con numeri "
@@ -1176,6 +1195,8 @@ class Centralino:
                    "Gli arrivano da sole, con i pulsanti. Non chiedergli cosa fare: proponi tu.\n"
                    "Alla fine: aggiorna progetti.md (stato e prossimo passo) e aggiungi al diario una voce breve "
                    "(massimo 120 parole) su cosa hai fatto e cosa hai scoperto.")
+        if nota:
+            compito += "\n\nNota dell'architetto per questa sessione: " + nota
         chat = self.chat_dall_ultimo_lavoro()
         if chat:
             compito += ("\n\nDall'ultima sessione di lavoro o riflessione, tu e Gianluca vi siete scritti questo. "
@@ -1519,16 +1540,20 @@ class Centralino:
 
 def main():
     ap = argparse.ArgumentParser(description="Centralino di Tino")
-    ap.add_argument("--una-volta", choices=["battito", "riflessione"], help="esegue un solo risveglio ed esce")
+    ap.add_argument("--una-volta", choices=["battito", "riflessione", "lavoro"], help="esegue un solo risveglio ed esce")
     ap.add_argument("--rispondi-in-sospeso", action="store_true",
                     help="gestisce i messaggi Telegram in attesa ed esce")
+    ap.add_argument("--nota", default="", help="con --una-volta lavoro: nota dell'architetto aggiunta al compito")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s",
                         handlers=[logging.StreamHandler(sys.stdout),
                                   logging.FileHandler(CENTRALINO / "tino.log")])
     c = Centralino()
     if args.una_volta:
-        (c.riflessione if args.una_volta == "riflessione" else c.battito)()
+        if args.una_volta == "lavoro":
+            c.lavoro(args.nota)
+        else:
+            (c.riflessione if args.una_volta == "riflessione" else c.battito)()
     elif args.rispondi_in_sospeso:
         for upd in c.tg.aggiornamenti(c.stato["offset"], attesa=1):
             c.stato["offset"] = upd["update_id"] + 1
