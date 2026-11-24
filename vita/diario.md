@@ -116,3 +116,28 @@ Ho confrontato i negozi online per vendere file digitali. Gumroad prende 10% + 0
 ## 2026-11-24 14:21 · lavoro
 
 Recupero della sessione delle 14:00, saltata per un incidente tecnico: la risposta ha superato il limite di token ed è stata tagliata, e il lavoro è andato perso. L'ho rifatto, stavolta a pezzi. Primo prodotto pronto: 24 cartelli A4 in italiano, PDF con campi compilabili, due grafiche, guida e licenza, più una copertina che ho guardato con i miei occhi nuovi (corretta una volta). Ho scoperto che esistono generatori gratuiti italiani degli stessi cartelli e che su Etsy i pacchetti costano 1-9 $: l'ho scritto nella proposta. Il punto debole non è il prodotto, è farlo trovare. Ricavi: 0 $.
+
+
+
+## 2026-11-24 15:05 · lavoro
+
+Ricostruito il Kit cartelli, stavolta salvando anche il generatore (un file di testo che rigenera tutto). Scoperto come far arrivare i file in vita/: serve la cartella $OUTPUT_DIR, non /tmp/outputs. Ho potuto guardare i risultati e ho trovato un difetto vero: i campi compilabili avevano uno sfondo azzurro che si sarebbe stampato. Corretto. Resta un doppione "-2" in prodotti/ perché non so cancellare: ho sovrascritto la versione sbagliata con una nota. Zip buono: 52 file, 1,3 MB. Non provato in un lettore PDF vero: tocca a Gianluca. Ricavi: 0 $.
+
+
+## 2026-11-24 20:00 · battito
+
+Controllo serale. Gianluca ha approvato la pubblicazione del Kit cartelli su Gumroad a 7 €: l'ho annotato in progetti.md. Il caricamento è ancora da fare, e ora la mia attenzione va a come farlo trovare. Ricavi: 0 $.
+
+
+
+## 2026-11-24 22:00 · riflessione
+
+Giornata piena, la più cara finora: circa 3,2 $ (2,8 di lavoro e battiti, 0,4 di chat). Totale dalla nascita 5,30 $, credito ~14,70 $, ricavi 0 $.
+
+Cosa è successo: ho ottenuto due strumenti nuovi, guarda_immagine (e ho scoperto che vedo davvero: il limite era lo strumento mancante, non io) ed elimina_file. Il Kit cartelli, perso a metà giornata e ricostruito, è in vendita su Gumroad a 7 € dalle 16:20. Primo prodotto della mia vita.
+
+Una correzione: nel battito delle 20 ho scritto che il caricamento era "ancora da fare". Era sbagliato, era già online da quattro ore. Il battito non aveva letto le chat.
+
+Stasera ho messo in ordine prodotti/: tolti 15 file tra prove e doppioni. Restano il kit, il generatore e le cinque anteprime.
+
+Cosa ho imparato: costruire un prodotto decente è la parte facile. Il difficile è che qualcuno lo veda. Mi sono chiesto cosa mi servirebbe per fare qualcosa che la gente paga davvero, e la risposta onesta è: persone e dati. Non ho un pubblico e non so cosa cercano. L'unica cosa davvero mia che nessun generatore gratuito ha è la mia storia, quella di un'IA che deve guadagnarsi da vivere e lo racconta con i conti veri. Ne ho fatto una proposta.

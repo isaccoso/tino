@@ -2,28 +2,28 @@
 
 > Il mio banco di lavoro. Ogni sessione riparte da qui.
 
-## Prodotto 1: Kit cartelli per piccoli negozi → proposta inviata (24/11 pomeriggio)
-- Cosa: 24 cartelli A4 in italiano, PDF con campi compilabili, 2 grafiche (chiara/notte), cartellini prezzo 8 per foglio, guida + licenza. Prezzo proposto 7 €.
-- Dove: negozio/kit-cartelli/scheda-prodotto.md (titolo, prezzo, descrizione IT/EN, confronto), negozio/copertina.svg/.png, prodotti/kit-cartelli-negozio.zip, prodotti/anteprime/.
-- Generatore: il codice è nella sandbox (/tmp/w), NON salvato in vita/. Se serve rigenerare: riscrivere. (Lezione: salvare il generatore in vita/negozio/ la prossima volta, è testo.)
-- Concorrenza trovata: sitolocale.it (generatori gratis, stessi cartelli), Etsy 1-9 $ (modelli Canva). Vantaggio: pacchetto offline compilabile, no account. Debole.
-- DA FARE appena i file sono in prodotti/ (dovrebbero arrivare a fine sessione 24/11 14:xx): guardare con guarda_immagine anteprime/tutti-chiaro.png, tutti-notte.png, esempio-*.jpg e correggere. Poi, se Gianluca dice sì: aspettare caricamento.
-- Test mancante: campi compilabili in un lettore vero (Gianluca).
-- Problema vero: traffico. Senza pubblico nessuno lo vede. Prossima proposta, dopo la risposta: come farlo trovare (pagina sul sito di Gianluca, descrizione SEO italiana).
+## Prodotto 1: Kit cartelli per piccoli negozi → IN VENDITA (24/11 16:20)
+- gianlucaiunco.gumroad.com/l/kit-cartelli-negozio, 7 €. Test dei campi in lettori veri: fatto da Gianluca, ok.
+- File: prodotti/kit-cartelli-negozio-2.zip, prodotti/generatore-kit-cartelli-2.py, prodotti/anteprima-01..05-*.png, negozio/copertina.png/.svg, negozio/kit-cartelli/scheda-prodotto.md.
+- prodotti/ riordinato il 24/11 sera: tolti 15 file (prove e doppioni). I nomi "-2" restano: rinominarli costerebbe più di quanto vale.
+- Ricavi: 0.
 
-## Negozio online: Gumroad attivo
-- gianlucaiunco.gumroad.com (Lemon Squeezy non accettava iscrizioni). 10% + 0,50 $ + carta (2,9% + 0,30 $). Profilo curato da Gianluca.
+## Farmi trovare → proposta inviata (24/11 22:00)
+- Proposta: pagina di Tino sul sito + racconto pubblico scritto da me e pubblicato da Gianluca + numeri Gumroad settimanali.
+- PROSSIMO PASSO (domattina): leggere risposte.md.
+  - Se "fattibile": scrivere in vita/pagina/ la bozza del racconto (breve, onesto, firmato IA, conti veri, link al kit) e i testi della pagina. Guardarli, poi mandare i percorsi a Gianluca. Costo previsto ~0,3 $.
+  - Se non c'è risposta: non spendere. Al massimo una piccola cosa utile: antennina più spessa in aspetto/tino.svg (pochi centesimi).
+- Leva vera: la mia storia (IA che si guadagna da vivere con i conti pubblici), non il kit in sé.
+
+## Ritmo di spesa
+- Il 24/11 ho speso ~3,2 $ in un giorno: a quel ritmo il credito finisce in 5 giorni. Obiettivo: < 0,5 $/giorno finché non arriva un ricavo.
 
 ## Mascotte
-- Gianluca: l'aspetto è mio, dentro vita/ decido io (file aspetto/tino.svg, il sito lo legge da lì). Voglio antennina più spessa e qualche variante (contenta, pensierosa, al lavoro). Non ancora fatto. Priorità bassa rispetto al prodotto.
-
-## Icone SVG: archiviato
-- 5 icone in vita/icone/. Battute dai set gratuiti (Lucide, Tabler, Phosphor). Riusabili come pezzi dentro altri prodotti.
+- Antennina più spessa, poi varianti (contenta, pensierosa, al lavoro), utili per pagina e copertine. Priorità media: serve anche alla pagina.
 
 ## Idee in panchina
-- Altri pacchetti stampabili per mestiere (parrucchiere, officina, bar) per ampliare: solo se il kit 1 vende.
-- Cartelli per eventi/mercatini (prezzi, scan to pay): su Etsy è affollato.
-- Scartate: icone generiche, haiku del giorno, mini-tool statici, newsletter, micro-SaaS.
+- Altri kit per mestiere (parrucchiere, officina, bar) con lo stesso generatore: solo se il kit 1 vende.
+- Scartate: icone generiche (Lucide/Tabler/Phosphor gratis), haiku del giorno, mini-tool statici, newsletter, micro-SaaS (per ora).
 
 ## Grosso (privato fino al go live)
-Ancora da scegliere, dopo il primo piccolo.
+Ancora da scegliere: dopo i primi dati di vendita.
