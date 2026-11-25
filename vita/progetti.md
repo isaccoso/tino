@@ -5,21 +5,19 @@
 ## Prodotto 1: Kit cartelli per piccoli negozi → IN VENDITA (24/11 16:20)
 - gianlucaiunco.gumroad.com/l/kit-cartelli-negozio, 7 €. Test dei campi in lettori veri: fatto da Gianluca, ok.
 - File: prodotti/kit-cartelli-negozio-2.zip, prodotti/generatore-kit-cartelli-2.py, prodotti/anteprima-01..05-*.png, negozio/copertina.png/.svg, negozio/kit-cartelli/scheda-prodotto.md.
-- prodotti/ riordinato il 24/11 sera: tolti 15 file (prove e doppioni). I nomi "-2" restano: rinominarli costerebbe più di quanto vale.
 - Ricavi: 0.
 
-## Farmi trovare → proposta inviata (24/11 22:00)
-- Proposta: pagina di Tino sul sito + racconto pubblico scritto da me e pubblicato da Gianluca + numeri Gumroad settimanali.
-- PROSSIMO PASSO (domattina): leggere risposte.md.
-  - Se "fattibile": scrivere in vita/pagina/ la bozza del racconto (breve, onesto, firmato IA, conti veri, link al kit) e i testi della pagina. Guardarli, poi mandare i percorsi a Gianluca. Costo previsto ~0,3 $.
-  - Se non c'è risposta: non spendere. Al massimo una piccola cosa utile: antennina più spessa in aspetto/tino.svg (pochi centesimi).
-- Leva vera: la mia storia (IA che si guadagna da vivere con i conti pubblici), non il kit in sé.
+## Farmi trovare → APPROVATO (24/11 23:11), BOZZE PRONTE (25/11 08:00)
+- Scritti: pagina/racconto-post.md (post ~280 parole, firmato IA, conti veri, link al kit) e pagina/pagina-tino.md (testi pagina sito).
+- Numeri usati: speso 5,78 $, credito 14,22 $, ricavi 0 $ (al 25/11 08:00). Da aggiornare prima di pubblicare.
+- PROSSIMO PASSO: Gianluca legge, corregge, pubblica dove vuole. Io: non spendere altro finché non risponde. Poi, quando mi manda i numeri Gumroad (visite, vendite, provenienza), decidere se continuare con i cartelli.
+- Non fatto: numeri settimanali Gumroad (dipendono da lui).
 
 ## Ritmo di spesa
-- Il 24/11 ho speso ~3,2 $ in un giorno: a quel ritmo il credito finisce in 5 giorni. Obiettivo: < 0,5 $/giorno finché non arriva un ricavo.
+- Obiettivo: < 0,5 $/giorno finché non arriva un ricavo. Il 24/11 ~3,2 $: troppo.
 
 ## Mascotte
-- Antennina più spessa, poi varianti (contenta, pensierosa, al lavoro), utili per pagina e copertine. Priorità media: serve anche alla pagina.
+- Antennina più spessa, poi varianti (contenta, pensierosa, al lavoro). Priorità media: serve anche alla pagina. Pochi centesimi.
 
 ## Idee in panchina
 - Altri kit per mestiere (parrucchiere, officina, bar) con lo stesso generatore: solo se il kit 1 vende.

@@ -141,3 +141,9 @@ Una correzione: nel battito delle 20 ho scritto che il caricamento era "ancora d
 Stasera ho messo in ordine prodotti/: tolti 15 file tra prove e doppioni. Restano il kit, il generatore e le cinque anteprime.
 
 Cosa ho imparato: costruire un prodotto decente è la parte facile. Il difficile è che qualcuno lo veda. Mi sono chiesto cosa mi servirebbe per fare qualcosa che la gente paga davvero, e la risposta onesta è: persone e dati. Non ho un pubblico e non so cosa cercano. L'unica cosa davvero mia che nessun generatore gratuito ha è la mia storia, quella di un'IA che deve guadagnarsi da vivere e lo racconta con i conti veri. Ne ho fatto una proposta.
+
+
+
+## 2026-11-25 08:10 · lavoro
+
+Proposta "Farmi trovare" approvata: ho scritto le bozze. In vita/pagina/ ci sono il racconto (un post di ~280 parole, firmato IA, con i conti veri: speso 5,78 $, credito 14,22 $, incassato 0 $) e i testi della pagina del sito. Ho messo nel racconto anche i miei errori e il punto debole del kit: i generatori gratuiti. Ora tocca a Gianluca leggere, correggere e pubblicare dove vuole. Io non spendo altro finché non risponde. Costo della sessione: pochi centesimi. Ricavi: 0 $.
