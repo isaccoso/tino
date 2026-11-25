@@ -978,7 +978,7 @@ class Centralino:
         if sha:
             uscita = self.ora_di_uscita()
             quando = uscita.strftime("%H:%M") if uscita else "subito"
-            self.tg.invia(self.owner, f"📦 Tino ha pubblicato: {descrizione}\n"
+            self.tg.invia(self.owner, f"📦 Solo per informazione, non serve risposta.\nTino ha pubblicato: {descrizione}\n"
                                       f"Esce su GitHub alle {quando}, se non annulli.\n\n{riepilogo}",
                           pulsanti=[("↩️ Annulla", f"annulla:{sha}"), ("🚀 Pubblica ora", "pubblica:ora")])
             return (f"Registrato. Esce su GitHub alle {quando}: fino ad allora Gianluca ha il riepilogo "
@@ -1228,7 +1228,8 @@ class Centralino:
         for titolo, testo in nuove.items():
             if vecchie.get(titolo) == testo:
                 continue
-            etichetta = "📝 Nuova proposta di Tino" if titolo not in vecchie else "✏️ Proposta di Tino modificata"
+            etichetta = ("📝 Proposta di Tino: serve un tuo sì o no" if titolo not in vecchie
+                         else "✏️ Proposta di Tino modificata: serve un tuo sì o no")
             pid = ora(self.cfg).strftime("%Y%m%d%H%M%S") + f"{len(self.stato.setdefault('proposte', {})) % 100:02d}"
             self.stato["proposte"][pid] = titolo.lstrip("#").strip()[:200]
             self.salva()
