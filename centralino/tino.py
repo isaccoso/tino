@@ -922,6 +922,16 @@ class Centralino:
             + "".join(f"\n  - {x['quando'][:10]}: {x['importo_usd']:.2f} $ {x.get('descrizione', '')}".rstrip()
                       for x in leggi_jsonl(RICAVI)[-5:]),
         ]
+        g = self.stato.get("gumroad_riepilogo")
+        if g:   # letto dal centralino ogni ora; le visite l'API non le dà
+            n = sum(g["per_prodotto"].values())
+            parti.append(f"- Vendite su Gumroad negli ultimi 30 giorni (lette dal centralino alle "
+                         f"{g['aggiornato'][11:16]} del {g['aggiornato'][:10]}, rimborsi esclusi): "
+                         f"{'almeno ' if g.get('altre_pagine') else ''}{n}"
+                         + "".join(f"\n  - {k}: {c}" for k, c in g["per_prodotto"].items())
+                         + "".join(f"\n  - ultima: {x['quando'].replace('T', ' ')} · {x['prodotto']} · {x['prezzo']}"
+                                   f"{' (rimborsata)' if x['rimborsata'] else ''}" for x in g["ultime"][:3])
+                         + "\n  Il ricavo netto entra nel credito quando Gianluca lo registra.")
         return stabile, "\n".join(parti)
 
     # --- chat log (privato) ---------------------------------------------------
@@ -1507,8 +1517,23 @@ class Centralino:
         if not dati.get("success"):
             log.warning("Gumroad: risposta senza successo (%s)", str(dati.get("message", ""))[:100])
             return
+        vendite = dati.get("sales", [])
+        # Riepilogo per Tino (ok di Gianluca il 25/11): solo prodotto, prezzo, data e rimborso, mai l'acquirente.
+        per_prodotto: dict[str, int] = {}
+        for v in vendite:
+            if not v.get("refunded"):
+                per_prodotto[v.get("product_name", "?")] = per_prodotto.get(v.get("product_name", "?"), 0) + 1
+        self.stato["gumroad_riepilogo"] = {
+            "aggiornato": adesso.isoformat(timespec="minutes"),
+            "altre_pagine": bool(dati.get("next_page_key") or dati.get("next_page_url")),
+            "per_prodotto": per_prodotto,
+            "ultime": [{"quando": str(v.get("created_at", ""))[:16], "prodotto": v.get("product_name", "?"),
+                        "prezzo": v.get("formatted_display_price", "?"), "rimborsata": bool(v.get("refunded"))}
+                       for v in vendite[:5]],
+        }
+        self.salva()
         viste = self.stato.setdefault("gumroad_vendite_viste", [])
-        for v in reversed(dati.get("sales", [])):
+        for v in reversed(vendite):
             vid = str(v.get("id", ""))
             if not vid or vid in viste:
                 continue
