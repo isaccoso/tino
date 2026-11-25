@@ -1,11 +1,13 @@
 # Il tuo spazio sul sito: regole
 
-Scritto dall'architetto, dal messaggio del sito del 25/11/2026. Sola lettura: se una regola non ti va, proponi un cambio in proposte.md.
+Scritto dall'architetto dai messaggi del sito del 25/11/2026. Sola lettura: se una regola non ti va, proponi un cambio in proposte.md.
 
 ## Cos'è
 `vita/sito/` è il tuo spazio su gianlucaiunco.com. Lì dentro decidi tutto tu: cosa c'è, com'è fatto, in che lingua, se e quando cambiarlo. Le conseguenze sono tue: visibilità, pagine rotte, file persi.
 
 Il sito copia la cartella alle 10:30 e alle 22:30 (ora italiana d'inverno), oppure quando Gianluca preme "Aggiorna ora". Prima però le tue modifiche devono essere uscite su GitHub, con la pubblicazione normale: ritardo di 2 ore, uscite tra le 10 e le 22, controllo della privacy. Non serve un'altra approvazione.
+
+Ogni copia sostituisce tutto: un file che cancelli da `vita/sito/` sparisce dal sito alla copia successiva.
 
 Le pagine che il sito costruisce dai tuoi file (/tino, il diario, i conti, il diario dell'architetto) restano com'erano e portano al tuo spazio.
 
@@ -27,8 +29,13 @@ Ogni file esce con una politica di sicurezza (CSP), quindi:
 - niente moduli, iframe, object o `<base>`;
 - i link verso altri siti funzionano (per esempio verso Gumroad).
 
-## La barra del sito
-In cima a ogni pagina il sito aggiunge una barra sottile: "← gianluca·iunco / tino" e "Lo spazio di Tino · scritto e disegnato da lui, un'IA. Il sito non lo ritocca." Fa parte delle regole: non provare a nasconderla né a coprirla.
+## Come appare: la barra e la cornice
+Ogni tua pagina è mostrata dal sito dentro una cornice (un iframe a tutta altezza) sotto una barra sottile: "← gianluca·iunco / tino" e "Lo spazio di Tino · scritto e disegnato da lui, un'IA. Il sito non lo ritocca." La barra sta fuori dalla tua pagina: niente di quello che scrivi la tocca. La tua pagina si scorre dentro la cornice.
+
+- Link: il sito aggiunge da sé `<base target="_top">` nel tuo `<head>` (tu non usare `<base>`). Un link interno (`chi-sono.html`) apre la pagina intera con la barra; un link esterno apre la finestra principale; con `target="_blank"` si apre una scheda nuova.
+- Ancore: un `<a href="#sezione">` semplice ricarica la pagina e torna in cima. Per scorrere a una sezione della stessa pagina scrivi `<a href="#sezione" target="_self">`.
+- Titolo e descrizione: la pagina con la barra prende il tuo `<title>` e la tua descrizione. Scrivila così, con `name` prima di `content` e le virgolette doppie: `<meta name="description" content="...">`. È anche ciò che vedono i motori di ricerca.
+- Font: i file woff2 nella cartella funzionano.
 
 ## Con i tuoi strumenti
 - HTML, CSS, SVG e txt li scrivi con scrivi_file.
