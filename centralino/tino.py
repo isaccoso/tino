@@ -206,6 +206,7 @@ ESTENSIONI_PRODOTTI = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg",
 MAX_BYTE_PRODOTTO = 20_000_000
 TRASCRIZIONI = CENTRALINO / "trascrizioni"              # privato: ogni sessione per intero, fuori dal repository
 CONTROLLI_PRIVACY = CENTRALINO / "controlli_privacy.jsonl"   # privato: esito completo di ogni controllo privacy
+CLAUDE_CLI = Path.home() / ".local" / "bin" / "claude"    # Claude Code: il controllo privacy usa l'abbonamento
 RX_PRODOTTO = re.compile(r"prodotti/([\w./-]+?\.(?:" + "|".join(e[1:] for e in sorted(ESTENSIONI_PRODOTTI)) + r"))\b")
 
 
@@ -1058,17 +1059,21 @@ class Centralino:
         chat = "\n".join(f"{x['quando'][:16]} {x['chi']}: {x['testo']}" for x in leggi_jsonl(CHAT_LOG)
                          if x.get("quando", "") >= limite_chat)[-60_000:]
         modello = self.cfg.get("modello_controllo_privacy", "claude-sonnet-5-5")
+        domanda = ("<parole_vietate>\n" + ("\n".join(vietate) or "(nessuna)") + "\n</parole_vietate>\n\n"
+                   "<chat_private>\n" + (chat or "(nessuna)") + "\n</chat_private>\n\n"
+                   "<da_pubblicare>\n" + diff[:80_000] + "\n</da_pubblicare>")
         try:
-            risposta = self.client.messages.create(
-                model=modello, max_tokens=2000, output_config={"effort": "low"},
-                system=PROMPT_CONTROLLO, messages=[{"role": "user", "content":
-                    "<parole_vietate>\n" + ("\n".join(vietate) or "(nessuna)") + "\n</parole_vietate>\n\n"
-                    "<chat_private>\n" + (chat or "(nessuna)") + "\n</chat_private>\n\n"
-                    "<da_pubblicare>\n" + diff[:80_000] + "\n</da_pubblicare>"}])
-            costo = costo_usage(modello, risposta.usage)
-            registra(self.cfg, "autonomia", "controllo", modello, risposta.usage, costo,
-                     f"{adesso.strftime('%Y%m%d-%H%M%S')}-controllo")
-            testo = "".join(b.text for b in risposta.content if getattr(b, "type", "") == "text").strip()
+            # Prima con l'abbonamento di Gianluca (Claude Code senza strumenti): non pesa sul credito di Tino,
+            # perché è una protezione nostra (Gianluca, 25/11). Se non risponde, l'API come prima.
+            testo, costo = self.controllo_con_abbonamento(domanda), 0.0
+            if testo is None:
+                risposta = self.client.messages.create(
+                    model=modello, max_tokens=2000, output_config={"effort": "low"},
+                    system=PROMPT_CONTROLLO, messages=[{"role": "user", "content": domanda}])
+                costo = costo_usage(modello, risposta.usage)
+                registra(self.cfg, "autonomia", "controllo", modello, risposta.usage, costo,
+                         f"{adesso.strftime('%Y%m%d-%H%M%S')}-controllo")
+                testo = "".join(b.text for b in risposta.content if getattr(b, "type", "") == "text").strip()
             try:
                 esito, _ = json.JSONDecoder().raw_decode(testo[testo.find("{"):])   # ignora il testo dopo il JSON
             except ValueError:
@@ -1111,6 +1116,25 @@ class Centralino:
                       "\n\nNiente esce finché non decidi. «Annulla tutto» toglie tutte le pubblicazioni di Tino "
                       "in attesa; per togliere solo una frase chiedi all'architetto.", pulsanti=pulsanti)
         return False
+
+    def controllo_con_abbonamento(self, domanda: str) -> str | None:
+        """Il controllo privacy con Claude Code (abbonamento di Gianluca), senza strumenti, MCP, impostazioni
+        né sessioni salvate. Restituisce il testo della risposta, o None se non è disponibile o fallisce."""
+        if not self.cfg.get("controllo_con_abbonamento", True) or not CLAUDE_CLI.exists():
+            return None
+        try:
+            r = subprocess.run([str(CLAUDE_CLI), "-p", "--model", "sonnet", "--tools", "", "--strict-mcp-config",
+                                "--setting-sources", "", "--no-session-persistence", "--output-format", "json",
+                                "--system-prompt", PROMPT_CONTROLLO],
+                               input=domanda, capture_output=True, text=True, timeout=300, cwd=str(CENTRALINO))
+            esito = json.loads(r.stdout)
+            if r.returncode or esito.get("is_error") or not isinstance(esito.get("result"), str):
+                raise RuntimeError(str(esito.get("result") or r.stderr)[:300])
+            log.info("Controllo privacy con l'abbonamento (%s ms).", esito.get("duration_ms"))
+            return esito["result"].strip()
+        except Exception as e:
+            log.warning("Controllo con l'abbonamento non riuscito (%s): uso l'API.", str(e)[:200] or type(e).__name__)
+            return None
 
     def annulla_pubblicazione(self, sha: str) -> str:
         if not re.fullmatch(r"[0-9a-f]{7,40}", sha):
