@@ -540,7 +540,7 @@ class Risveglio:
             p = percorso_sicuro(inp["percorso"], scrittura=True)
             relp = p.relative_to(VITA.resolve())
             if not relp.parts or relp.parts[0] not in CARTELLE_CANCELLABILI or len(relp.parts) < 2:
-                raise ErroreStrumento("Puoi cancellare solo file dentro prodotti/ o negozio/.")
+                raise ErroreStrumento("Puoi cancellare solo file dentro prodotti/, negozio/ o sito/.")
             if not p.is_file():
                 raise ErroreStrumento(f"{relp} non è un file (le cartelle non si cancellano).")
             pubblicato = not self.c.git("ls-files", "--error-unmatch", str(p)).returncode
