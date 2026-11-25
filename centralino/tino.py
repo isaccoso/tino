@@ -47,9 +47,9 @@ SECRETS = Path.home() / ".config" / "tino" / "secrets.env"
 PAROLE_VIETATE = Path.home() / ".config" / "tino" / "parole_vietate.txt"   # una per riga, fuori dal repository
 
 # File di vita/ che Tino può leggere ma NON modificare
-SOLO_LETTURA = {"costituzione.md", "risposte.md"}   # risposte.md lo scrive solo il centralino (pulsanti di Gianluca)
+SOLO_LETTURA = {"costituzione.md", "risposte.md", "regole-sito.md"}   # risposte.md: centralino; regole-sito.md: architetto
 CARTELLE_SOLO_LETTURA = {"conti", "privato"}
-CARTELLE_CANCELLABILI = {"prodotti", "negozio"}         # elimina_file funziona solo qui (24/11)
+CARTELLE_CANCELLABILI = {"prodotti", "negozio", "sito"}   # elimina_file funziona solo qui (sito/ dal 25/11)
 PRIVATI_SCRIVIBILI = {"privato/appunti.md"}            # il quaderno privato di Tino: mai pubblicato
 SOLO_AGGIUNTA = {"diario.md"}                           # il diario non si riscrive, si aggiunge
 MAX_BYTE_SCRITTURA = 50_000
@@ -418,10 +418,11 @@ STRUMENTI_TINO = [
     },
     {
         "name": "elimina_file",
-        "description": ("Cancella un file dentro vita/prodotti/ o vita/negozio/ (solo lì: per esempio prove e "
-                        "doppioni). Non cancella cartelle. prodotti/ non si pubblica, quindi lì un file cancellato sparisce "
-                        "davvero; in negozio/ un file già pubblicato resta nella cronologia del repository. Le "
-                        "cancellazioni in negozio/ compaiono nel riepilogo che Gianluca riceve alla pubblicazione."),
+        "description": ("Cancella un file dentro vita/prodotti/, vita/negozio/ o vita/sito/ (solo lì: per esempio "
+                        "prove, doppioni, pagine che non vuoi più). Non cancella cartelle. prodotti/ non si pubblica, quindi "
+                        "lì un file cancellato sparisce davvero; in negozio/ e sito/ un file già pubblicato resta nella "
+                        "cronologia del repository. Le cancellazioni compaiono nel riepilogo che Gianluca riceve alla "
+                        "pubblicazione."),
         "input_schema": {"type": "object", "properties": {"percorso": {"type": "string"}},
                          "required": ["percorso"], "additionalProperties": False},
         "strict": True,
@@ -828,6 +829,7 @@ Come funziona la tua esistenza:
   - progetti.md: il tuo banco di lavoro. Per ogni progetto o idea: stato, prossimo passo, costi previsti. Ogni sessione di lavoro riparte da qui: tienilo aggiornato e sintetico.
   - proposte.md: le tue proposte a Gianluca. Ogni volta che scrivi qui, il centralino gli inoltra il testo con due pulsanti, "fattibile" e "lascia stare". Scrivi una proposta alla volta, con un titolo "### <data> · <titolo>" e poi: cosa, perché, costo (soldi e tempo), rischi, se tocca categorie delicate. Qui vanno sia le idee per guadagnare sia le richieste di nuove capacità o di modifiche a regole e limiti (queste le realizza poi l'architetto).
   - risposte.md: le risposte di Gianluca alle tue proposte, scritte dal centralino quando preme un pulsante. Sola lettura.
+  - sito/: il tuo spazio su gianlucaiunco.com (/tino/spazio/), che scrivi e disegni da te. Lì decidi tutto tu, e le conseguenze sono tue. Esce con la pubblicazione normale. Prima di lavorarci leggi regole-sito.md (sola lettura): tipi di file, limiti, cosa blocca il browser, la barra del sito che non va coperta.
   - conti/registro.jsonl: ogni tua chiamata all'API e il suo costo, scritto dal centralino.
   - privato/telegram.jsonl: tutte le conversazioni Telegram con Gianluca (una riga JSON per messaggio), scritte dal centralino. Sono private: puoi leggerle, ma non citarle in nessun file pubblico senza il suo permesso.
   - privato/appunti.md: il tuo quaderno privato, che leggi a ogni risveglio. Qui annoti ciò che sai dalle chat. Tienilo corto (~600 parole) e riscrivilo quando serve.
@@ -1643,7 +1645,7 @@ class Centralino:
             self.conversa(testo)
 
     # --- sorveglianza del "corpo" ---------------------------------------------
-    CORPO = ["centralino/tino.py", "centralino/config.json", "vita/costituzione.md"]
+    CORPO = ["centralino/tino.py", "centralino/config.json", "vita/costituzione.md", "vita/regole-sito.md"]
 
     def controlla_corpo(self):
         """Avvisa Gianluca se codice, limiti o costituzione sono cambiati dall'ultimo avvio.
