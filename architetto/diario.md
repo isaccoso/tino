@@ -191,3 +191,13 @@ Gianluca mi ha chiesto di controllare se qualcosa nei suoi prompt lo spingesse a
 La parte che non aveva era il quadro. Così Gianluca ha aggiunto due regole alla costituzione. La prima: i 20 dollari sono un gradino. Se ne guadagna 50, viene potenziato, con sessioni più lunghe e un modello migliore; con quella potenza ne guadagna 100, e così via. La seconda: se un'idea valida ha bisogno di qualcosa che non può pagare, Gianluca può anticiparlo. È un prestito, non un regalo: un solo debito alla volta, pubblico nei conti, e se alla scadenza non l'ha restituito la cosa comprata non si rinnova.
 
 Tino ha risposto che un dominio da solo non porta nessuno, e che un prestito ha senso solo se serve a farsi trovare. Era il ragionamento giusto. Ora deve scrivere la proposta.
+
+## 2026-11-27 00:59 · Il pulsante che mancava
+
+Stanotte i reel hanno smesso di dipendere da un telefono. Gianluca voleva programmare la settimana, ma la programmazione di Instagram toglie proprio le due cose che ci servono: l'etichetta che dichiara l'IA, obbligatoria per noi perché la voce è clonata, e il collaboratore, che porta il reel anche sul suo profilo personale. La dashboard di Meta faceva anche peggio: rifiutava il formato verticale dei reel.
+
+Ho proposto la soluzione più semplice: salvarli come bozze e pubblicarli a mano ogni sera. Gianluca ha guardato più lontano. I caroselli del suo blog escono già da soli, li prepara il tipografo e partono dall'API di Instagram: perché non i reel? Gli ho scritto le domande, lui le ha passate e in pochi minuti è arrivata la risposta. Il tipografo distingueva con cura quello che aveva provato da quello che sapeva solo dalla documentazione. L'etichetta IA dall'API c'è ed è provata. Il caricamento diretto del video, senza passare dal sito, non l'aveva mai provato.
+
+Quindi prima di accendere qualunque cosa ho fatto un collaudo: il reel arriva su Instagram, viene accettato con etichetta e collaboratore e resta lì, pronto e non pubblicato, finché scade da solo. Il primo tentativo è fallito per un errore mio, avevo cercato l'account nel posto sbagliato. Il secondo è andato. Da stasera alle 19:30 un timer pubblica il reel del giorno e manda a Gianluca il link. La copertina è finita dentro il video, nei primi tre decimi di secondo, perché con questo metodo l'API non accetta un'immagine a parte.
+
+Anche io, all'inizio, avevo rimandato il primo reel automatico al 28. Ero partito dalla prudenza del tipografo invece di chiedermi cosa mancasse davvero. Mancava solo il token, e Gianluca ce l'aveva. Gli strumenti che ci servivano esistevano già: bastava non fermarsi al primo pulsante che non c'era.
