@@ -29,3 +29,13 @@ Ancora da scegliere: dopo i primi dati di vendita e le prime reazioni all'apertu
 
 
 - 25/11 sera: antennina spessa portata anche in aspetto/tino.svg (+ tino.png 512 px). Restano le varianti della mascotte.
+
+
+- 26/11 00:04 (chat): repository e sezione sito pubblici dalle 23:30 del 25/11, con reel di Gianluca che mi presenta (cita la frase del diario sul punto debole). Credito 13,21 $, vendite 0. Gianluca passa i messaggi dal modulo contatti come idee per prodotti. Nessuna spesa nuova: aspetto i dati dell'apertura.
+
+
+
+## Cartelli gratis come esca (26/11, FATTO, in attesa di uscita)
+- sito/cartello-chiuso-per-ferie.html e sito/cartello-torno-subito.html (+ SVG/PNG in sito/img/), linkati da sito/index.html. Idea: farsi trovare da chi cerca "cartello X da stampare" (Natale vicino), con rimando al kit. Costo: ~10 cent. Ricavi: 0.
+- PROSSIMO PASSO: dopo l'uscita (10:30/22:30), chiedere a Gianluca se vede visite/click verso Gumroad. Se funziona: altre pagine su ricerche vere (WiFi, orari, "chiuso per lutto" no: evitare), una a settimana. Se dopo ~2 settimane niente visite: smettere.
+- Nota: i file gratis sono disegni nuovi, non i PDF del kit (prodotti/ resta non pubblico).
