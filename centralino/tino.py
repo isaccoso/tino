@@ -862,6 +862,7 @@ class Centralino:
         self.controllo_fallito = False
         self.prossimo_controllo = None
         self.ultimo_gumroad = None
+        self.ultime_visite = None
         self.attesa_pensa = False   # dopo il pulsante "Pensa", il messaggio successivo va a Opus
 
     def salva(self):
@@ -935,6 +936,21 @@ class Centralino:
                          + "".join(f"\n  - ultima: {x['quando'].replace('T', ' ')} · {x['prodotto']} · {x['prezzo']}"
                                    f"{' (rimborsata)' if x['rimborsata'] else ''}" for x in g["ultime"][:3])
                          + "\n  Il ricavo netto entra nel credito quando Gianluca lo registra.")
+        v = self.stato.get("visite_riepilogo")
+        if v:   # statistiche del sito, lette dal centralino ogni ora (ok di Gianluca il 26/11)
+            righe = [f"- Visite al tuo spazio sul sito, ultimi 7 giorni (lette alle {v['aggiornato'][11:16]} "
+                     f"del {v['aggiornato'][:10]}): {v['viste']} viste, {v['arrivi']} arrivi da fuori. {v['nota']}"]
+            righe += [f"  - {x['pagina']}: {x['viste']} viste, {x['arrivi']} arrivi" for x in v["pagine"]]
+            if v["provenienze"]:
+                righe.append("  - Da dove arrivano: " + ", ".join(f"{k} {n}" for k, n in v["provenienze"].items()))
+            righe.append("  Le pagine non elencate non hanno avuto visite. Le visite di Gianluca e dei bot "
+                         "sono escluse. I clic verso Gumroad il sito non li conta.")
+            if v.get("copia"):
+                c = v["copia"]
+                righe.append(f"  - Ultima copia del tuo spazio sul sito: {str(c.get('aggiornata', ''))[:16].replace('T', ' ')}"
+                             f", {c.get('file', '?')} file" + (f", scartati: {c['scartati']}" if c.get("scartati") else "")
+                             + (f", avvisi: {c['avvisi']}" if c.get("avvisi") else ""))
+            parti.append("\n".join(righe))
         return stabile, "\n".join(parti)
 
     # --- chat log (privato) ---------------------------------------------------
@@ -1518,9 +1534,60 @@ class Centralino:
         except Exception:
             log.exception("Controllo Gumroad non riuscito")
         try:
+            self.controlla_visite(adesso)
+        except Exception:
+            log.exception("Controllo delle visite non riuscito")
+        try:
             self.spingi()
         except Exception:
             log.exception("Uscita su GitHub non riuscita")
+
+    def controlla_visite(self, adesso: dt.datetime):
+        """Ogni ora legge dal sito le statistiche aggregate dello spazio di Tino (endpoint del tipografo,
+        chiave SITO_STATS_TOKEN). Solo conteggi per giorno e pagina: niente IP né singole visite.
+        Tino vede il riepilogo nel contesto, non la chiave né l'endpoint."""
+        token = self.segreti.get("SITO_STATS_TOKEN", "").strip().strip('"\'')
+        minuti = self.cfg.get("visite_controllo_minuti", 60)
+        if not token or not minuti:
+            return
+        if self.ultime_visite and adesso - self.ultime_visite < dt.timedelta(minutes=minuti):
+            return
+        self.ultime_visite = adesso
+        req = urllib.request.Request("https://www.gianlucaiunco.com/api/tino/stats?giorni=7",
+                                     headers={"X-Tino-Token": token, "User-Agent": "tino-centralino"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                dati = json.load(r)
+        except Exception as e:   # mai la chiave nel log
+            log.warning("Statistiche del sito non disponibili: %s", type(e).__name__)
+            return
+        # La riga "prova" del 26/11 è la visita di collaudo del tipografo: non è una visita vera.
+        prove: dict[str, int] = {}
+        provenienze: dict[str, int] = {}
+        for x in dati.get("provenienze", []):
+            if x.get("da") == "prova":
+                prove[x.get("pagina", "")] = prove.get(x.get("pagina", ""), 0) + int(x.get("arrivi", 0))
+            else:
+                provenienze[str(x.get("da", "?"))] = provenienze.get(str(x.get("da", "?")), 0) + int(x.get("arrivi", 0))
+        pagine = []
+        for x in dati.get("pagine", []):
+            meno = prove.get(x.get("pagina", ""), 0)
+            viste, arrivi = int(x.get("viste", 0)) - meno, int(x.get("arrivi", 0)) - meno
+            if viste > 0:
+                pagine.append({"pagina": str(x.get("pagina", "?")), "viste": viste, "arrivi": max(0, arrivi)})
+        pagine.sort(key=lambda x: -x["viste"])
+        copia = dati.get("copia") or {}
+        self.stato["visite_riepilogo"] = {
+            "aggiornato": adesso.isoformat(timespec="minutes"),
+            "viste": sum(x["viste"] for x in pagine),
+            "arrivi": sum(x["arrivi"] for x in pagine),
+            "pagine": pagine[:15],
+            "provenienze": dict(sorted(provenienze.items(), key=lambda kv: -kv[1])[:8]),
+            "nota": "Viste = pagine aperte (il sito non usa cookie, quindi non sono persone diverse); "
+                    "arrivi = visite entrate da fuori (un altro sito, un link diretto o una ricerca).",
+            "copia": {k: copia.get(k) for k in ("aggiornata", "file", "scartati", "avvisi")},
+        }
+        self.salva()
 
     def controlla_gumroad(self, adesso: dt.datetime):
         """Ogni ora guarda le vendite su Gumroad (token di sola lettura usato solo per leggere) e avvisa Gianluca
