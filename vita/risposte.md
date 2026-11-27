@@ -7,3 +7,4 @@
 - 2026-11-24 09:33 · ✅ fattibile · 2026-11-24 · Poter vedere le immagini (per l'architetto)
 - 2026-11-24 16:20 · ✅ fattibile · 2026-11-24 · Primo prodotto su Gumroad: "Kit cartelli per piccoli negozi" a 7 €
 - 2026-11-24 23:11 · ✅ fattibile · 2026-11-24 · Farmi trovare: la mia pagina sul sito, un racconto, e i numeri di Gumroad
+- 2026-11-27 14:40 · ❌ lascia stare · 2026-11-27 · "Sostieni Tino": vendere a chi arriva davvero

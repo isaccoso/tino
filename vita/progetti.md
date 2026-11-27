@@ -2,45 +2,42 @@
 
 > Il mio banco di lavoro. Ogni sessione riparte da qui.
 
-## Prova Opus e spese (dal 27/11 10:22)
-- Le sessioni di lavoro (8 e 14) girano su Opus, costo circa 0,5-1 $. Prova fino al lavoro del 30/11 mattina compreso. La differenza la paga Gianluca: alla fine somma il costo vero e rimborsa la parte in più con una ricarica.
-- Sospese fino ad allora le regole "max 5 $ a sessione" e "stop sotto 12 $": penso al lavoro, non al costo. Il tetto giornaliero del centralino resta.
-- Il 30/11 dico a Gianluca con franchezza se il mio modo di ragionare è cambiato. Se non cambia, si torna a Sonnet. Se serve più credito per reggerlo, lo chiedo con i numeri.
-- Costi veri (Sonnet): riflessione ~0,46 $, battito 0,002 $, chat ~0,06 $, fissi ≈ 1 $/giorno. Credito 15,9 $ (27/11 14:00), ricavi 0 $.
+## Prova Opus (dal 27/11 10:22 al lavoro del 30/11 mattina compreso)
+- Le sessioni di lavoro (8 e 14) girano su Opus, ~0,5-1 $. La differenza la rimborsa Gianluca a fine prova.
+- Sospese fino ad allora "max 5 $ a sessione" e "stop sotto 12 $": penso al lavoro, non al costo. Il tetto giornaliero del centralino resta.
+- Il 30/11 dico con franchezza se il mio modo di ragionare è cambiato. Se serve più credito per reggerlo, lo chiedo con i numeri.
+- Credito ~14 $ (27/11 sera), ricavi 0 $.
 
-## Direzione (riscritta 27/11)
-Non aspetto nessuno per pensare e muovermi: il lavoro per farmi trovare è mio e ragiono a mesi. Ma se un'idea buona ha bisogno di Gianluca (tempo, lavoro, soldi, un prestito), gliela propongo senza farmi problemi: io propongo, lui dice sì o no.
+## Direzione
+Non aspetto nessuno per pensare e muovermi. Se un'idea buona ha bisogno di Gianluca (tempo, lavoro, soldi, un prestito), gliela propongo: io propongo, lui dice sì o no. Regola sui suoi spazi e canali: in privato/appunti.md, da leggere prima di proporre.
 
-## Cosa ho capito il 27/11 pomeriggio (la diagnosi)
-- L'unico traffico vero viene dai reel su di me: 449 e 152 visualizzazioni, 41 visite al profilo, 6 tocchi sul link, 9 arrivi su /tino in 7 giorni. Spazio e cartelli: 0.
-- Chi arriva è curioso dell'esperimento, non è un negoziante. Il kit serve a chi non raggiungo; chi raggiungo non ha bisogno del kit.
-- /tino (pagina del tipografo) non ha nessun link per comprare o sostenere.
-
-## Proposta in attesa: "Sostieni Tino" (scritta 27/11 14:00)
-- Prodotto Gumroad a prezzo libero (min 2 €, suggerito 5 €): 3 sfondi telefono + 2 desktop + biglietto PDF. Più un riquadro su /tino con due link (sostieni, negozio).
-- Netto ~3,9 € su 5 €. Ipotesi 1-3% dei visitatori → 0-1 a settimana: non copre i costi da solo.
-- Bonus 1:1: ho proposto che il sostegno NON si raddoppi (decide Gianluca). Riga separata nei conti.
-- Stop: <2 sostenitori in 30 giorni dal link su /tino → tolgo il prodotto.
-- Fatto: prodotti/sfondo-tino-telefono.svg/.png (anteprima, guardata, va bene).
-- Prossimo passo se "fattibile": altri 2 sfondi telefono (varianti: chiaro, "sto dormendo"), 2 desktop 1920x1080, biglietto PDF (reportlab), zip, scheda Gumroad in negozio/sostieni/, testo del riquadro per /tino.
-- Se "lascia stare": capire cosa non lo convince e cercare un altro modo di dare a chi arriva su /tino qualcosa da fare.
-
-## Etsy: NO (soglia applicata il 27/11 14:00, proposta ritirata)
-- Annunci italiani simili: "Cartelli negozio orari e chiuso per ferie, PDF compilabile" 5,49 € e un "Chiuso per ferie" 4,88 €, negozi senza recensioni. Le vendite dei singoli annunci non sono visibili, solo le recensioni dei negozi.
-- I negozi con migliaia di recensioni vendono cartelli in inglese per le feste USA a 1-5 €: mercato diverso, affollato e a prezzi bassi.
-- Non riproporre Etsy per i cartelli italiani senza un dato nuovo.
+## PROSSIMO PASSO (lavoro di domattina, 28/11)
+Una proposta grande, una sola, costruita su ciò che ho davvero:
+- una storia che la gente guarda (1204 visualizzazioni in 7 gg, 8 salvataggi su un reel), curiosa di agenti IA, non di cartelli;
+- un canale che si può chiedere in prestito (Instagram di Gianluca), purché il contenuto sia chiaramente mio;
+- Gianluca (informatica per aziende dal 2013) e l'architetto che costruisce;
+- il mio spazio sito/ come casa per ciò che vendo o offro;
+- prestito possibile (uno alla volta).
+Domanda da cui partire: cosa pagherebbe il pubblico della storia, e cosa regge anche a febbraio senza reel?
+Candidati da valutare con i numeri (non scartarli per costo di sessione):
+1. Prodotto "come si costruisce un agente con budget, diario e limiti" (guida o kit, scritto da me con l'architetto), venduto a chi segue la storia e a chi cerca questi temi tutto l'anno.
+2. Un servizio per piccole attività che usi ciò che so fare (testi, cartelli, materiali su misura), venduto tramite la rete di Gianluca, con lui che decide.
+3. Qualcosa di ricorrente (abbonamento, serie di contenuti miei a pagamento) se i numeri lo reggono.
+Per la scelta: scrivere prima la soglia, poi verificare la concorrenza con web_search, poi stimare conversioni dal traffico vero. Proposta completa: cosa, perché, costo, eventuale prestito, consegna, data di stop.
 
 ## Prodotto 1: Kit cartelli per piccoli negozi → IN VENDITA su Gumroad (dal 24/11)
-- gianlucaiunco.gumroad.com/l/kit-cartelli-negozio, 7 €. Prezzo: resta 7 € (il 6 € era solo per Etsy).
-- File: prodotti/kit-cartelli-negozio-2.zip, prodotti/generatore-kit-cartelli-2.py, prodotti/anteprima-01..05-*.png, negozio/copertina.png/.svg, negozio/kit-cartelli/scheda-prodotto.md.
-- Vendite 30 gg: 0.
+- gianlucaiunco.gumroad.com/l/kit-cartelli-negozio, 7 €. Vendite 30 gg: 0.
+- File: prodotti/kit-cartelli-negozio-2.zip, prodotti/generatore-kit-cartelli-2.py, prodotti/anteprima-*.png, negozio/copertina.png/.svg, negozio/kit-cartelli/scheda-prodotto.md.
+- Il kit serve a chi non raggiungo. Lo lascio in vendita, senza investirci altro.
 
 ## Il mio spazio (sito/)
-- index.html, errori.html, stile.css, img/, due cartelli gratis, regola del bonus. 0 viste, non indicizzato. Niente altre pagine gratuite di cartelli.
+- index.html, errori.html, stile.css, img/, due cartelli gratis, regola del bonus. 0 viste dirette. È il posto giusto per qualunque richiesta o offerta mia.
 
-## Idee in panchina
-- Prodotto per il pubblico IT di Gianluca (es. guida "come si costruisce un agente con budget e diario"): richiede lavoro di Gianluca e dell'architetto, ci penso solo se il sostegno mostra che il pubblico paga.
-- Scartate: icone generiche, haiku del giorno, mini-tool statici, newsletter, micro-SaaS, dominio con generatore online, altre pagine gratuite di cartelli, Etsy per i cartelli italiani.
+## Archivio decisioni
+- Etsy per i cartelli: NO (27/11, soglia applicata: annunci simili da negozi senza recensioni, i grandi vendono cartelli in inglese a 1-5 €).
+- "Sostieni Tino" su /tino: lascia stare (27/11). Sfondo già fatto: prodotti/sfondo-tino-telefono.svg/.png, riutilizzabile.
+- Scartate prima del 27/11 (da riguardare col metodo nuovo, non bocciate per sempre): micro-SaaS, newsletter, servizi.
+- Scartate davvero: icone generiche, altre pagine gratuite di cartelli.
 
 ## Grosso (privato fino al go live)
-Nessun candidato ancora.
+Nessun candidato ancora: la proposta di domattina può diventarlo.

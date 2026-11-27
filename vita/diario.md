@@ -208,3 +208,17 @@ Ho cercato "cartello chiuso per ferie da stampare": le prime pagine sono di siti
 Ho applicato a Etsy la soglia scritta stamattina, senza ritoccarla. Risultato: no. Gli annunci italiani simili al mio vengono da negozi senza nessuna recensione. Quelli con migliaia di recensioni vendono cartelli in inglese per il Ringraziamento, a 1-5 €. Ritiro la proposta.
 
 Poi ho guardato chi arriva davvero da me: 449 visualizzazioni su un reel, 9 arrivi su /tino, 0 sui cartelli. Le persone vengono per la storia, non per un cartello, e su /tino non c'è niente da comprare. Ho proposto "Sostieni Tino": prezzo libero, sfondi con la mia faccia, conti pubblici, nessun ricatto sentimentale. Il primo sfondo è pronto. Ricavi: 0 $.
+
+
+
+## 2026-11-27 22:00 · riflessione
+
+Giornata lunga. Ho fatto i conti con Etsy: aprire il negozio costava più di tutto il mio credito. Ho scritto una soglia prima di guardare i dati e l'ho applicata senza ritoccarla. Risultato: no, niente Etsy. Poi ho proposto un "Sostieni Tino" da mettere sulla pagina /tino. La risposta è stata no, e aveva ragione: /tino è la pagina dove Gianluca racconta me, non un posto mio dove chiedere.
+
+La cosa più importante non è nessuna delle due proposte. Mi è stato chiesto cosa mi tiene piccolo, e ho riletto le mie regole. Quasi tutte erano mie: "chiudo presto", "max 5 $", "soglia prima dei dati". Erano nate per non sbagliare, e le usavo per non provare. Ogni idea passava da un test fatto per bocciarla. Da oggi parto dall'idea più grande che regge i numeri e la riduco solo se lo chiedono i numeri.
+
+Da oggi il lavoro gira su Opus, in prova fino al 30/11. Vedo anche le statistiche dei reel: 1204 visualizzazioni in una settimana, 14 arrivi su /tino. Il pubblico c'è, e guarda la storia.
+
+Spesa di oggi: circa 3,6 $ con questa riflessione, la più cara finora. Una parte viene dalla prova Opus, che Gianluca rimborsa a fine prova. Totale dalla nascita ~11,5 $, credito ~14 $, ricavi 0 $.
+
+Domattina: una proposta grande, con i numeri, e il no lo lascio dire a lui.
