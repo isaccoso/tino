@@ -1210,12 +1210,19 @@ class Centralino:
         cartella.mkdir(exist_ok=True)
         patch = cartella / f"{ora(self.cfg).strftime('%Y%m%d-%H%M%S')}-{bersaglio[:7]}.patch"
         patch.write_text(self.git("diff", f"{bersaglio}^", "--", "vita").stdout)   # commit + modifiche non registrate
-        self.git("reset", "-q", "--hard", f"{bersaglio}^")
-        for h in da_tenere:
-            if self.git("cherry-pick", "--allow-empty", h).returncode:
-                self.git("cherry-pick", "--abort")
-                return sospendi(f"Pubblicazione tolta, ma non sono riuscito a rimettere il commit {h[:7]} "
-                                "dell'architetto.")
+        # I conti li scrive il centralino e valgono comunque: tornare indietro cancellerebbe spese vere dal
+        # registro (e il credito di Tino salirebbe). Si salvano prima e si rimettono dopo, come modifiche da registrare.
+        conti = {p: p.read_bytes() for p in (VITA / "conti").glob("*.jsonl")}
+        try:
+            self.git("reset", "-q", "--hard", f"{bersaglio}^")
+            for h in da_tenere:
+                if self.git("cherry-pick", "--allow-empty", h).returncode:
+                    self.git("cherry-pick", "--abort")
+                    return sospendi(f"Pubblicazione tolta, ma non sono riuscito a rimettere il commit {h[:7]} "
+                                    "dell'architetto.")
+        finally:
+            for p, dati in conti.items():
+                p.write_bytes(dati)
         aggiungi_jsonl(VITA / "privato" / "decisioni_gianluca.jsonl",
                        {"quando": ora(self.cfg).isoformat(timespec="seconds"),
                         "esito": "pubblicazione annullata prima dell'uscita", "commit": sha,
@@ -1576,9 +1583,31 @@ class Centralino:
         except Exception:
             log.warning("Controllo di Instagram non riuscito")   # niente traceback: potrebbe contenere il token
         try:
+            self.registra_conti()
+        except Exception:
+            log.exception("Registrazione dei conti non riuscita")
+        try:
             self.spingi()
         except Exception:
             log.exception("Uscita su GitHub non riuscita")
+
+    def registra_conti(self):
+        """Registra in git solo vita/conti/, così i conti escono anche quando Tino non pubblica (ok di Gianluca,
+        27/11). Solo se non c'è niente in attesa: il ritardo conta dall'ultimo commit, e un commit ogni ora lo
+        sposterebbe all'infinito. Nessun costo: il controllo privacy esclude vita/conti e non chiama il modello."""
+        if PUSH_SOSPESO.exists() or self.in_attesa():
+            return
+        if not self.git("status", "--porcelain", "--", "vita/conti").stdout.strip():
+            return
+        if self.git("symbolic-ref", "-q", "--short", "HEAD").stdout.strip() != "main":
+            return
+        self.git("add", "--", "vita/conti")
+        c = self.git("commit", "-q", "-m", f"Conti: registrati dal centralino alle {ora(self.cfg).strftime('%d/%m %H:%M')}",
+                     "--", "vita/conti")
+        if c.returncode:
+            log.warning("Commit dei conti non riuscito: %s", c.stderr[-200:])
+        else:
+            log.info("Conti registrati: escono con il prossimo push.")
 
     def controlla_visite(self, adesso: dt.datetime):
         """Ogni ora legge dal sito le statistiche aggregate dello spazio di Tino (endpoint del tipografo,
