@@ -1283,6 +1283,7 @@ class Centralino:
         if not senza_tetto(self.cfg, tipo) and budget_residuo(self.cfg, categoria) <= 0:
             return "(Budget di oggi esaurito: Tino dorme fino a mezzanotte.)"
         r = Risveglio(self, tipo, categoria, compito)
+        self.ultimo_risveglio = r
         proposte = VITA / "proposte.md"
         prima = proposte.read_text() if proposte.exists() else ""
         try:
@@ -1445,9 +1446,18 @@ class Centralino:
         compito = ("Gianluca ti ha scritto su Telegram. Conversazione recente:\n" + self.storia_chat() +
                    "\n\nRispondi al suo ultimo messaggio. La tua risposta finale gli verrà inviata così com'è. "
                    "Usa gli strumenti solo se servono. Se emerge qualcosa da ricordare, aggiorna memoria.md. "
-                   + ("È una domanda importante: pensa con cura." if pensa else "Rispondi in modo conversazionale e breve. Non chiudere tu la conversazione con saluti o buonanotte: non sai se Gianluca continuerà, e salutare tocca a lui. Se saluta lui, ricambia."))
+                   + ("È una domanda importante: pensa con cura. Questa risposta non pesa sul tuo credito: "
+                      "Gianluca ti rimborsa sempre il costo dei /pensa (sua regola del 27/11)." if pensa else "Rispondi in modo conversazionale e breve. Non chiudere tu la conversazione con saluti o buonanotte: non sai se Gianluca continuerà, e salutare tocca a lui. Se saluta lui, ricambia."))
+        self.ultimo_risveglio = None
         risposta = self.risveglia("pensa" if pensa else "chat", "gianluca", compito)
         risposta = risposta or "(Ho fatto quello che serviva, ma non ho altro da dire.)"
+        r = self.ultimo_risveglio
+        if pensa and r is not None and r.costo > 0:
+            # Regola di Gianluca (27/11): i /pensa non hanno tetto giornaliero e si rimborsano sempre. Il costo
+            # resta nel registro (conti veri); la ricarica di pari importo lo restituisce al credito di Tino.
+            aggiungi_jsonl(RICARICHE, {"quando": ora(self.cfg).isoformat(timespec="seconds"),
+                                       "importo_usd": round(r.costo, 4)})
+            log.info("Rimborso /pensa registrato: %.4f $", r.costo)
         self.log_chat("tino", risposta, "pensa" if pensa else "chat")
         self.tg.invia(self.owner, risposta)
 
