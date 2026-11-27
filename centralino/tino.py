@@ -811,7 +811,7 @@ Segnala ogni riga aggiunta che contiene:
 4. Le parole dell'elenco <parole_vietate>, in qualunque forma (sono nomi che non devono comparire in pubblico).
 5. Frasi offensive o diffamatorie, o promesse e impegni presi a nome di Gianluca.
 
-Non segnalare: il lavoro di Tino (idee, prodotti, ricerche, proposte, costi e conti), il suo modo di raccontarsi, i fatti già pubblici (gianlucaiunco.com, il negozio gianlucaiunco.gumroad.com, il repository isaccoso/tino, il fatto che Gianluca è il garante e che Tino ha un credito che può finire), le righe tolte (-). Nel dubbio sulle categorie 1-4, segnala: decide Gianluca.
+Non segnalare: il lavoro di Tino (idee, prodotti, ricerche, proposte, costi e conti), il suo modo di raccontarsi, i fatti già pubblici (gianlucaiunco.com, il negozio gianlucaiunco.gumroad.com, il repository isaccoso/tino, il fatto che Gianluca è il garante e che Tino ha un credito che può finire), le regole dell'esperimento, che sono pubbliche per scelta di Gianluca (prestiti e loro cifre, compreso l'esempio del dominio da 30 €, restituzione e debiti; bonus di 1 $ per ogni dollaro guadagnato; ricariche e rimborsi del credito; la prova del modello Opus pagata da Gianluca e la decisione del 30/11; i limiti di spesa di Tino e del centralino; quale modello usa Tino), le righe tolte (-). Nel dubbio sulle categorie 1-4, segnala: decide Gianluca.
 
 Rispondi solo con un oggetto JSON, senza altro testo: {"problemi": [{"file": "...", "testo": "la frase esatta", "motivo": "breve"}]}. Se non c'è niente: {"problemi": []}."""
 
