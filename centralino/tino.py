@@ -938,8 +938,10 @@ class Centralino:
                          + "\n  Il ricavo netto entra nel credito quando Gianluca lo registra.")
         v = self.stato.get("visite_riepilogo")
         if v:   # statistiche del sito, lette dal centralino ogni ora (ok di Gianluca il 26/11)
-            righe = [f"- Visite al tuo spazio sul sito, ultimi 7 giorni (lette alle {v['aggiornato'][11:16]} "
-                     f"del {v['aggiornato'][:10]}): {v['viste']} viste, {v['arrivi']} arrivi da fuori. {v['nota']}"]
+            righe = [f"- Visite alle tue pagine sul sito (/tino, diario, conti, architetto e il tuo spazio; dal 27/11 "
+                     f"non più solo lo spazio), ultimi 7 giorni (lette alle {v['aggiornato'][11:16]} del "
+                     f"{v['aggiornato'][:10]}): {v['viste']} viste, {v['arrivi']} arrivi da fuori. {v['nota']} "
+                     f"Numeri parziali: chi legge diario e conti su GitHub non è contato."]
             righe += [f"  - {x['pagina']}: {x['viste']} viste, {x['arrivi']} arrivi" for x in v["pagine"]]
             if v["provenienze"]:
                 righe.append("  - Da dove arrivano: " + ", ".join(f"{k} {n}" for k, n in v["provenienze"].items()))
