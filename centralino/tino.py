@@ -951,6 +951,21 @@ class Centralino:
                              f", {c.get('file', '?')} file" + (f", scartati: {c['scartati']}" if c.get("scartati") else "")
                              + (f", avvisi: {c['avvisi']}" if c.get("avvisi") else ""))
             parti.append("\n".join(righe))
+        ig = self.stato.get("instagram_riepilogo")
+        if ig:   # pagina Instagram di Gianluca, letta dal centralino ogni ora (ok di Gianluca il 27/11)
+            s = ig["sette_giorni"]
+            righe = [f"- Instagram @gianlucaiunco.lab, la pagina di Gianluca (lette alle {ig['aggiornato'][11:16]} "
+                     f"del {ig['aggiornato'][:10]}). Ci escono i reel su di te, fatti da Gianluca e dall'architetto, "
+                     f"e i caroselli del suo blog. Nel profilo c'è un link a gianlucaiunco.com/tino. "
+                     f"Follower: {ig['follower']}. Ultimi 7 giorni: {s.get('views')} visualizzazioni, "
+                     f"{s.get('reach')} account raggiunti, {s.get('profile_views')} visite al profilo, "
+                     f"{s.get('website_clicks')} tocchi sui link del profilo (Instagram non dice quale dei link), "
+                     f"{s.get('accounts_engaged')} account che hanno interagito."]
+            for p in ig["post"]:
+                righe.append(f"  - {p['quando']} · {p['tipo']} · «{p['inizio']}» · {p.get('views', '?')} visualizzazioni, "
+                             f"{p.get('reach', '?')} raggiunti, {p['mi_piace']} mi piace, {p['commenti']} commenti, "
+                             f"{p.get('saved', '?')} salvataggi, {p.get('shares', '?')} condivisioni")
+            parti.append("\n".join(righe))
         return stabile, "\n".join(parti)
 
     # --- chat log (privato) ---------------------------------------------------
@@ -1538,6 +1553,10 @@ class Centralino:
         except Exception:
             log.exception("Controllo delle visite non riuscito")
         try:
+            self.controlla_instagram(adesso)
+        except Exception:
+            log.warning("Controllo di Instagram non riuscito")   # niente traceback: potrebbe contenere il token
+        try:
             self.spingi()
         except Exception:
             log.exception("Uscita su GitHub non riuscita")
@@ -1586,6 +1605,64 @@ class Centralino:
             "nota": "Viste = pagine aperte (il sito non usa cookie, quindi non sono persone diverse); "
                     "arrivi = visite entrate da fuori (un altro sito, un link diretto o una ricerca).",
             "copia": {k: copia.get(k) for k in ("aggiornata", "file", "scartati", "avvisi")},
+        }
+        self.salva()
+
+    def controlla_instagram(self, adesso: dt.datetime):
+        """Ogni ora legge, in sola lettura, le statistiche della pagina Instagram di Gianluca (@gianlucaiunco.lab),
+        dove escono i reel su Tino (ok di Gianluca il 27/11). Il token sta in ~/.config/tino/instagram.env e si
+        rilegge ogni volta, così una rotazione non richiede riavvii. Tino vede solo i numeri, mai il token."""
+        minuti = self.cfg.get("instagram_controllo_minuti")
+        file_env = Path.home() / ".config/tino/instagram.env"
+        if not minuti or not file_env.exists():
+            return
+        if getattr(self, "ultimo_instagram", None) and adesso - self.ultimo_instagram < dt.timedelta(minutes=minuti):
+            return
+        self.ultimo_instagram = adesso
+        env = {}
+        for riga in file_env.read_text().splitlines():
+            if "=" in riga and not riga.strip().startswith("#"):
+                k, v = riga.split("=", 1)
+                env[k.strip()] = v.strip().strip("\"'")
+        token, conto = env.get("IG_ACCESS_TOKEN", ""), env.get("IG_USER_ID", "")
+        if not token or not conto:
+            return
+
+        def leggi(percorso, parametri):
+            parametri = dict(parametri, access_token=token)
+            url = f"https://graph.facebook.com/v25.0/{percorso}?" + urllib.parse.urlencode(parametri)
+            with urllib.request.urlopen(url, timeout=30) as r:
+                return json.load(r)
+
+        try:
+            profilo = leggi(conto, {"fields": "followers_count,media_count"})
+            fine = int(adesso.timestamp())
+            tot = leggi(f"{conto}/insights", {"metric": "views,reach,profile_views,website_clicks,accounts_engaged",
+                                               "period": "day", "metric_type": "total_value",
+                                               "since": fine - 7 * 86400, "until": fine})
+            media = leggi(f"{conto}/media", {"fields": "id,timestamp,media_product_type,caption,permalink,"
+                                                         "like_count,comments_count", "limit": 12})
+            post = []
+            for m in media.get("data", []):
+                x = {"quando": str(m.get("timestamp", ""))[:16].replace("T", " "),
+                     "tipo": "reel" if m.get("media_product_type") == "REELS" else "post",
+                     "inizio": " ".join(str(m.get("caption") or "").split())[:70],
+                     "link": m.get("permalink", ""),
+                     "mi_piace": m.get("like_count", 0), "commenti": m.get("comments_count", 0)}
+                try:
+                    i = leggi(f"{m['id']}/insights", {"metric": "views,reach,saved,shares"})
+                    x.update({d["name"]: d["values"][0]["value"] for d in i.get("data", [])})
+                except Exception:
+                    pass
+                post.append(x)
+        except Exception as e:   # mai il token nel log: l'URL e a volte la risposta lo contengono
+            log.warning("Instagram non risponde: %s", type(e).__name__)
+            return
+        self.stato["instagram_riepilogo"] = {
+            "aggiornato": adesso.isoformat(timespec="minutes"),
+            "follower": profilo.get("followers_count"),
+            "sette_giorni": {d["name"]: d.get("total_value", {}).get("value") for d in tot.get("data", [])},
+            "post": post,
         }
         self.salva()
 
