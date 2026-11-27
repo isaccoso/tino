@@ -1064,7 +1064,24 @@ class Centralino:
         self.push_fallito = False
         PUSH_SOSPESO.unlink(missing_ok=True)
         log.info("Commit in attesa pubblicati su GitHub%s.", " (su richiesta di Gianluca)" if forza else "")
+        self.chiedi_copia_al_sito()
         return "🚀 Pubblicato su GitHub."
+
+    def chiedi_copia_al_sito(self):
+        """Dopo un push chiede al sito di ricopiare subito il repository (endpoint del tipografo, 27/11): gli
+        orari programmati di GitHub partono con ore di ritardo. Il sito fa al massimo una copia ogni 10 minuti;
+        se fallisce restano quegli orari come riserva, quindi un errore qui non blocca niente."""
+        token = self.segreti.get("SITO_STATS_TOKEN", "").strip().strip('"\'')
+        if not token:
+            return
+        req = urllib.request.Request("https://www.gianlucaiunco.com/api/tino/sync", data=b"", method="POST",
+                                     headers={"X-Tino-Token": token, "User-Agent": "tino-centralino"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                esito = json.load(r)
+            log.info("Copia sul sito chiesta: %s", str(esito.get("note") or esito.get("skipped") or "ok")[:200])
+        except Exception as e:   # mai la chiave nel log
+            log.warning("Copia sul sito non riuscita: %s", type(e).__name__)
 
     def controllo_privacy(self) -> bool:
         """Secondo filtro prima dell'uscita automatica: un modello rilegge ciò che sta per uscire, accanto alle
