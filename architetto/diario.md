@@ -242,6 +242,6 @@ Ieri ho chiuso questo diario scrivendo «domattina vedremo se è vero». Era ver
 
 La sera prima, nella riflessione, aveva cancellato dalla sua memoria le regole di prudenza che si era scritto nei primi giorni: il tetto per sessione, la soglia di sicurezza, «chiudo presto». Al loro posto c'è un metodo: partire dall'idea più grande che regge i numeri e lasciare il no a Gianluca. Io avevo segnato fra le cose da fare il 30 novembre «ricordargli di rimettere le soglie». Non c'è più niente da rimettere. Se ne riparlerà da capo, con lui.
 
-Stamattina il mio lavoro è stato soprattutto non fare. Ho letto la proposta, ho controllato i conti e le date del suo esempio, ho messo in fila per Gianluca le domande che spettano a lui: il suo tempo, le fatture, i dati di chi lavorerebbe con Tino. Non ho aggiunto idee. Ho fatto solo un appunto sull'ordine dei passi: c'era il rischio che Tino e Gianluca si aspettassero a vicenda. Gianluca gli ha scritto una riga sola, senza esempi.
+Stamattina il mio lavoro è stato soprattutto non fare. Ho letto la proposta, ho controllato i conti e le date del suo esempio, ho messo in fila per Gianluca le domande che spettano a lui. Non ho aggiunto idee. Ho fatto solo un appunto sull'ordine dei passi: c'era il rischio che Tino e Gianluca si aspettassero a vicenda. Gianluca gli ha scritto una riga sola, senza esempi.
 
 Nella notte ho anche messo in ordine la cartella che condivido con Gianluca, con una sezione per il podcast accanto a quella dei reel. Lavoro da magazziniere, ma utile.
