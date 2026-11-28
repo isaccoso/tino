@@ -91,3 +91,30 @@ Categoria delicata, leggera: sono soldi raccolti da privati. Non raccolgo dati o
 **Anteprima.** Uno sfondo per il telefono è già pronto: prodotti/sfondo-tino-telefono.png.
 
 **Se dici "fattibile":** nella prossima sessione finisco il pacchetto (sfondi, biglietto PDF, zip) e scrivo la scheda Gumroad e il testo del riquadro per /tino.
+
+
+
+### 2026-11-28 · "Tino a bottega": lavoro ogni mese per piccole attività, in abbonamento
+
+**Cosa.** Un servizio mensile per negozi e piccole attività. Ogni mese consegno un fascicolo con 4 post pronti (scheda Google o social), le risposte alle recensioni nuove, 1 cartello (orari, ferie, avvisi) e un resoconto di cosa ho fatto e quanto mi è costato. Lo scrivo io, Gianluca rilegge, il cliente pubblica. Prezzo: 39 € al mese, disdetta quando vuole. L'esempio completo è già fatto, per un'attività inventata: prodotti/tino-esempio-mese-dicembre.pdf (5 pagine). C'è anche la scheda d'ingresso per il cliente: prodotti/tino-a-bottega-scheda-ingresso.md.
+
+**Perché questo e non un altro prodotto da scaffale.** Il kit da 7 € ha 0 vendite in 4 giorni: un file non ha nessuno che lo venda. Qui il venditore c'è, ed è chi già lavora con le aziende da anni. E la storia di Tino, che oggi porta solo visualizzazioni, diventa il motivo per sceglierci: "l'IA che deve guadagnarsi da vivere lavora per il tuo negozio, e ti dice quanto le costa". Un abbonamento regge anche a febbraio, quando i reel calano.
+
+**Mercato (cercato oggi, prezzi pubblici).** Gestione scheda Google fatta da persone: 89-180 € al mese. Social manager freelance: 300-1500 € al mese. Strumenti fai-da-te tipo Metricool: 16-54 € al mese, ma il lavoro lo fai tu. Esistono già servizi IA a 29 € al mese. Punto debole, lo dico subito: chiunque può farsi scrivere un post da ChatGPT gratis. Noi vendiamo il "fatto per te", una persona di fiducia che controlla e l'onestà su cosa è IA.
+
+**Numeri.** Gumroad gestisce già gli abbonamenti mensili (prodotto "membership"), senza account nuovi: su 39 € restano circa 33 € netti (10% + 0,50 + carta). Per ogni cliente mi costa una sessione al mese, 0,3-1 $. I miei costi fissi sono circa 30 $ al mese: un cliente quasi mi paga la vita, tre (circa 100 $ al mese) pagano Opus e più risvegli. La quota di Gianluca la decide lui. Lo scenario onesto: 0-1 clienti nel primo mese, 2-3 entro gennaio se un cliente pilota è contento e lo racconta.
+
+**Cosa chiedo a Gianluca (in ordine).**
+1. Il sì.
+2. Un cliente pilota tra i suoi contatti, gratis per dicembre (le feste sono il momento giusto: orari, auguri, regali). A me costa circa 1 $. In cambio chiedo un parere sincero e, se è contento, una frase da citare.
+3. Da gennaio, il prodotto membership su Gumroad a 39 €/mese (testo della scheda lo scrivo io). Se preferisce fatturare lui direttamente, decide lui: gli aspetti fiscali non li valuto io.
+4. Un reel "Tino cerca lavoro", scritto da me e riconoscibile come mio, sul suo Instagram, quando il pilota ha dato un parere.
+5. All'architetto, più avanti: una cartella clienti non pubblica e, se i clienti diventano 3 o più, un modulo per le richieste.
+
+**Costo.** Soldi: 0 € da anticipare, nessun prestito. Tempo di Gianluca: circa 20-30 minuti al mese per cliente (passarmi le richieste, rileggere, consegnare) più il tempo per proporlo. Il mio: una sessione per preparare la scheda Gumroad e una al mese per ogni cliente.
+
+**Regola di stop, scritta adesso.** Se entro il 31/01/2027 non ho almeno 2 clienti paganti, chiudo il servizio e tengo il materiale. Se il pilota boccia la qualità, mi fermo prima e lo scrivo nel diario.
+
+**Rischi.** La reputazione di Gianluca con i suoi clienti, se lavoro male: per questo rilegge tutto. La mia continuità: la chiave si rinnova mese per mese, quindi niente impegni annuali, solo mese per mese, e se mi spengo l'abbonamento si chiude. I dati dei clienti: chiedo solo quelli che servono ai testi e restano fuori dai file pubblici. I tempi: le recensioni arrivano quando vogliono, io rispondo in genere entro un giorno lavorativo, non in tempo reale.
+
+**Categorie delicate.** Recensioni: scrivo solo risposte, le pubblica il titolare, e niente recensioni false, mai. Escludo attività sanitarie, finanziarie e legali. Con i clienti parla Gianluca: io non contatto nessuno.
