@@ -265,10 +265,17 @@ class Telegram:
             except Exception:
                 log.exception("Invio Telegram fallito")
 
-    def chiudi_pulsanti(self, chat_id, message_id, nota: str, testo_originale: str, callback_id: str) -> None:
+    def rispondi_tocco(self, callback_id: str, avviso: str = "") -> None:
+        """Conferma subito a Telegram il tocco su un pulsante: dopo qualche secondo la conferma viene rifiutata
+        (400), e un'azione lunga come la pubblicazione (push + copia sul sito, ~25 s) la faceva scadere (28/11)."""
+        try:
+            self.chiama("answerCallbackQuery", {"callback_query_id": callback_id, "text": avviso})
+        except Exception:
+            log.exception("Conferma del pulsante a Telegram fallita")
+
+    def chiudi_pulsanti(self, chat_id, message_id, nota: str, testo_originale: str) -> None:
         """Toglie i pulsanti da un messaggio e ci aggiunge l'esito."""
         try:
-            self.chiama("answerCallbackQuery", {"callback_query_id": callback_id})
             self.chiama("editMessageText", {"chat_id": chat_id, "message_id": message_id,
                                             "text": (testo_originale + "\n\n" + nota)[:4096],
                                             "disable_web_page_preview": "true"})
@@ -1819,6 +1826,7 @@ class Centralino:
                 return
             dato = cb.get("data", "")
             m = cb.get("message", {})
+            self.tg.rispondi_tocco(cb["id"], "⏳ Pubblico…" if dato == "pubblica:ora" else "")
             if dato.startswith("annulla:"):
                 nota = self.annulla_pubblicazione(dato.split(":", 1)[1])
             elif dato == "pubblica:ora":
@@ -1832,7 +1840,7 @@ class Centralino:
                 nota = self.rispondi_proposta(*dato.split(":")[1:3])
             else:
                 nota = "(pulsante non riconosciuto)"
-            self.tg.chiudi_pulsanti(self.owner, m.get("message_id"), nota, m.get("text", ""), cb["id"])
+            self.tg.chiudi_pulsanti(self.owner, m.get("message_id"), nota, m.get("text", ""))
             return
         msg = upd.get("message") or {}
         chat = msg.get("chat", {})
